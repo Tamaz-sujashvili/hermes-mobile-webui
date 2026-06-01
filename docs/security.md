@@ -24,6 +24,8 @@ Recommended:
 3. Keep auth runtime files outside git and outside public artifacts.
 4. Rotate passwords by regenerating the auth runtime.
 
+If you bind WebUI directly to a non-loopback host on the machine, startup is blocked unless `HERMES_WEBUI_PASSWORD` is set. The only bypass is the explicit override `HERMES_WEBUI_ALLOW_INSECURE_BIND=1`.
+
 ## Runtime auth model
 
 The mobile proxy stores generated auth state in a runtime file such as:

@@ -26,10 +26,10 @@ def _load_repo_dotenv() -> None:
 
     Mirrors what start.sh does via ``set -a; source .env`` so that running
     ``python3 bootstrap.py`` directly behaves identically to ``./start.sh``.
-    Variables are set unconditionally (matching shell source semantics), so a
-    value in .env overrides one already present in the shell environment.
-    To keep a CLI-supplied value, unset it from .env or launch via start.sh
-    and override there.
+    By default, values already present in the shell environment win so an
+    operator can override repo-local defaults without editing `.env`. Set
+    ``HERMES_WEBUI_DOTENV_OVERRIDE=1`` to restore the old "dotenv wins"
+    behavior explicitly.
 
     Only loads the webui repo .env — not ~/.hermes/.env, which the server
     loads independently at startup for provider credentials.
@@ -40,6 +40,12 @@ def _load_repo_dotenv() -> None:
     env_path = REPO_ROOT / ".env"
     if not env_path.exists():
         return
+    override_existing = os.getenv("HERMES_WEBUI_DOTENV_OVERRIDE", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
     try:
         for raw_line in env_path.read_text(encoding="utf-8").splitlines():
             line = raw_line.strip()
@@ -52,7 +58,8 @@ def _load_repo_dotenv() -> None:
                 k = k[7:].strip()
             v = v.strip().strip('"').strip("'")
             if k:
-                os.environ[k] = v
+                if override_existing or k not in os.environ:
+                    os.environ[k] = v
     except Exception as exc:
         import sys as _sys
         print(f"[bootstrap] Warning: could not load .env — {exc}", file=_sys.stderr)
@@ -283,6 +290,17 @@ def wait_for_health(url: str, timeout: float = 25.0) -> bool:
     return False
 
 
+def _health_probe_host(host: str) -> str:
+    raw = (host or "").strip()
+    if raw in ("", "0.0.0.0"):
+        return "127.0.0.1"
+    if raw in ("::", "[::]", "::0"):
+        return "[::1]"
+    if raw == "::1":
+        return "[::1]"
+    return raw
+
+
 def open_browser(url: str) -> None:
     try:
         webbrowser.open(url)
@@ -457,7 +475,8 @@ def main() -> int:
             start_new_session=True,
         )
 
-    health_url = f"http://{args.host}:{args.port}/health"
+    health_host = _health_probe_host(args.host)
+    health_url = f"http://{health_host}:{args.port}/health"
     if not wait_for_health(health_url):
         raise RuntimeError(
             f"Web UI did not become healthy at {health_url}. "

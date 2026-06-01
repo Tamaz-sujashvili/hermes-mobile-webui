@@ -11,10 +11,10 @@ Covers:
   3. _load_repo_dotenv() strips quotes from values
   4. _load_repo_dotenv() is a no-op when .env does not exist
   5. _load_repo_dotenv() prints a warning (not crash) on unreadable .env
-  6. _load_repo_dotenv() overwrites existing env vars (shell source semantics)
+  6. Existing shell env vars win by default
   7. _load_repo_dotenv() handles 'export FOO=bar' prefix
   8. _load_repo_dotenv() preserves values containing '='
-  9. Variables are set unconditionally (not setdefault)
+  9. HERMES_WEBUI_DOTENV_OVERRIDE=1 restores dotenv override behavior
   10. Structural: loader is called before DEFAULT_HOST/DEFAULT_PORT
 """
 import os
@@ -106,9 +106,15 @@ class TestLoadRepoDotenv:
             "_load_repo_dotenv() should print a warning to stderr on read failure"
         )
 
-    def test_overwrites_existing_env_var(self, tmp_path):
-        """Unconditional overwrite matches shell source semantics."""
+    def test_preserves_existing_env_var_by_default(self, tmp_path):
+        """Shell env should win over repo-local .env by default."""
         os.environ["HERMES_WEBUI_HOST"] = "127.0.0.1"
+        self._run(tmp_path, "HERMES_WEBUI_HOST=0.0.0.0\n")
+        assert os.environ.get("HERMES_WEBUI_HOST") == "127.0.0.1"
+
+    def test_override_flag_allows_dotenv_to_replace_existing_env_var(self, tmp_path):
+        os.environ["HERMES_WEBUI_HOST"] = "127.0.0.1"
+        os.environ["HERMES_WEBUI_DOTENV_OVERRIDE"] = "1"
         self._run(tmp_path, "HERMES_WEBUI_HOST=0.0.0.0\n")
         assert os.environ.get("HERMES_WEBUI_HOST") == "0.0.0.0"
 

@@ -102,6 +102,8 @@ Recommended pattern:
 3. Put HTTPS and access control in front of the proxy.
 4. Use the same Hermes home / state on desktop and mobile so session history stays shared.
 
+On direct host binds, WebUI now refuses to start without `HERMES_WEBUI_PASSWORD` unless you explicitly override that protection with `HERMES_WEBUI_ALLOW_INSECURE_BIND=1`.
+
 More detail:
 
 - [Docker guide](docs/docker.md)

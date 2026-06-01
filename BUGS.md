@@ -4,13 +4,7 @@ This file tracks UI bugs and polish items. Fixed items are kept for reference.
 
 ---
 
-## Open Bugs
-
-*No open bugs at this time.*
-
----
-
-## Known Limitations
+## Open Bugs / Architectural Constraints
 
 - **Two-container Docker setup: tools run in WebUI container** — In the two-container setup (hermes-agent + hermes-webui as separate containers), WebUI-initiated agent sessions run tools in the WebUI container, not the agent container. This is a known architectural constraint. Workaround: use the combined single-image approach, or initiate sessions via the CLI in the agent container. (#681)
 

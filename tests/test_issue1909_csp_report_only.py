@@ -1,4 +1,4 @@
-"""Regression tests for #1909 CSP report-only security header."""
+"""Regression tests for #1909 CSP security header handling."""
 
 import io
 import json
@@ -9,7 +9,7 @@ import api.routes as routes
 from server import Handler
 
 
-def test_handler_adds_content_security_policy_report_only(monkeypatch):
+def test_handler_adds_content_security_policy_and_report_only(monkeypatch):
     sent_headers = []
     handler = Handler.__new__(Handler)
     handler.send_header = lambda key, value: sent_headers.append((key, value))
@@ -18,10 +18,11 @@ def test_handler_adds_content_security_policy_report_only(monkeypatch):
     Handler.end_headers(handler)
 
     headers = dict(sent_headers)
+    assert "Content-Security-Policy" in headers
     assert "Content-Security-Policy-Report-Only" in headers
     assert "Report-To" in headers
-    assert "Content-Security-Policy" not in headers
-    policy = headers["Content-Security-Policy-Report-Only"]
+    assert headers["Content-Security-Policy"] == headers["Content-Security-Policy-Report-Only"]
+    policy = headers["Content-Security-Policy"]
     assert "default-src 'self'" in policy
     assert "object-src 'none'" in policy
     assert "frame-ancestors 'self'" in policy
@@ -35,8 +36,8 @@ def test_handler_adds_content_security_policy_report_only(monkeypatch):
     }
 
 
-def test_csp_report_only_keeps_legacy_inline_allowances_for_current_ui():
-    policy = Handler.csp_report_only_policy()
+def test_csp_policy_keeps_legacy_inline_allowances_for_current_ui():
+    policy = Handler.csp_policy()
 
     assert "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net" in policy
     assert "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net" in policy

@@ -3,6 +3,7 @@ Hermes Web UI -- Main server entry point.
 Thin routing shell: imports Handler, delegates to api/routes.py, runs server.
 All business logic lives in api/*.
 """
+import json
 import logging
 import os
 import socket
@@ -10,6 +11,7 @@ import sys
 import time
 import traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from ipaddress import ip_address
 
 # ── Test-mode network isolation ─────────────────────────────────────────────
 # When `HERMES_WEBUI_TEST_NETWORK_BLOCK=1` is set in the environment, refuse
@@ -127,8 +129,8 @@ class QuietHTTPServer(ThreadingHTTPServer):
 
     def __init__(self, *args, **kwargs):
         server_address = args[0] if args else kwargs.get('server_address', None)
-        if server_address and ':' in server_address[0]:
-            self.address_family = socket.AF_INET6
+        if server_address:
+            self.address_family = _resolve_address_family(server_address[0], server_address[1])
         super().__init__(*args, **kwargs)
         self.accept_loop_requests_total = 0
         self.accept_loop_last_request_at = 0.0
@@ -200,7 +202,7 @@ class Handler(BaseHTTPRequestHandler):
                 pass
     _ver_suffix = WEBUI_VERSION.removeprefix('v')
     server_version = ('HermesWebUI/' + _ver_suffix) if _ver_suffix != 'unknown' else 'HermesWebUI'
-    _CSP_REPORT_ONLY = (
+    _CSP_POLICY = (
         "default-src 'self'; "
         "base-uri 'self'; "
         "object-src 'none'; "
@@ -213,14 +215,23 @@ class Handler(BaseHTTPRequestHandler):
         "connect-src 'self' http://127.0.0.1:* http://localhost:* ws://127.0.0.1:* ws://localhost:*; "
         "report-uri /api/csp-report; report-to csp-endpoint"
     )
-    _CSP_REPORT_TO = '{"group":"csp-endpoint","max_age":10886400,"endpoints":[{"url":"/api/csp-report"}]}'
+    _CSP_REPORT_TO = json.dumps(
+        {
+            "group": "csp-endpoint",
+            "max_age": 10886400,
+            "endpoints": [{"url": "/api/csp-report"}],
+        },
+        separators=(",", ":"),
+    )
 
     @classmethod
-    def csp_report_only_policy(cls) -> str:
-        return cls._CSP_REPORT_ONLY
+    def csp_policy(cls) -> str:
+        return cls._CSP_POLICY
 
     def end_headers(self) -> None:
-        self.send_header("Content-Security-Policy-Report-Only", self.csp_report_only_policy())
+        policy = self.csp_policy()
+        self.send_header("Content-Security-Policy", policy)
+        self.send_header("Content-Security-Policy-Report-Only", policy)
         self.send_header("Report-To", self._CSP_REPORT_TO)
         super().end_headers()
 
@@ -228,9 +239,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def log_request(self, code: str='-', size: str='-') -> None:
         """Structured JSON logs for each request."""
-        import json as _json
         duration_ms = round((time.time() - getattr(self, '_req_t0', time.time())) * 1000, 1)
-        record = _json.dumps({
+        record = json.dumps({
             'ts': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
             'method': self.command or '-',
             'path': self.path or '-',
@@ -322,6 +332,36 @@ def _raise_fd_soft_limit(target: int = 4096) -> dict:
     return {"status": "raised", "soft": desired, "hard": hard, "previous_soft": soft}
 
 
+def _is_wildcard_host(host: str) -> bool:
+    return host in ("0.0.0.0", "::", "", "[::]", "::0")
+
+
+def _is_loopback_host(host: str) -> bool:
+    if host in ("127.0.0.1", "::1", "localhost"):
+        return True
+    try:
+        return ip_address(host.strip("[]")).is_loopback
+    except ValueError:
+        return False
+
+
+def _resolve_address_family(host: str, port: int) -> socket.AddressFamily:
+    try:
+        parsed = ip_address(host.strip("[]"))
+    except ValueError:
+        parsed = None
+    if parsed is not None:
+        return socket.AF_INET6 if parsed.version == 6 else socket.AF_INET
+    try:
+        infos = socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM, 0, socket.AI_PASSIVE)
+    except socket.gaierror:
+        return socket.AF_INET
+    for family, *_rest in infos:
+        if family in (socket.AF_INET6, socket.AF_INET):
+            return family
+    return socket.AF_INET
+
+
 def main() -> None:
     from api.config import print_startup_config, verify_hermes_imports, _HERMES_FOUND
 
@@ -369,13 +409,28 @@ def main() -> None:
     if within_container:
         print('[ok] Running within container.', flush=True)
 
-    # Security: warn if binding non-loopback without authentication
+    # Security: block direct public binds without authentication on the host.
     from api.auth import is_auth_enabled
-    if HOST not in ('127.0.0.1', '::1', 'localhost') and not is_auth_enabled():
+    allow_insecure_bind = os.environ.get("HERMES_WEBUI_ALLOW_INSECURE_BIND", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+    if (not _is_loopback_host(HOST)) and (not _is_wildcard_host(HOST)) and not is_auth_enabled():
+        if not allow_insecure_bind:
+            raise RuntimeError(
+                "Refusing to start without authentication on a non-loopback bind. "
+                "Set HERMES_WEBUI_PASSWORD, bind to 127.0.0.1/::1, or explicitly "
+                "override with HERMES_WEBUI_ALLOW_INSECURE_BIND=1."
+            )
+        print(f'[!!] WARNING: HERMES_WEBUI_ALLOW_INSECURE_BIND=1 bypassed public-bind auth protection.', flush=True)
+    elif (_is_wildcard_host(HOST) or not _is_loopback_host(HOST)) and not is_auth_enabled():
         print(f'[!!] WARNING: Binding to {HOST} with NO PASSWORD SET.', flush=True)
         print(f'     Anyone on the network can access your filesystem and agent.', flush=True)
         print(f'     Set a password via Settings or HERMES_WEBUI_PASSWORD env var.', flush=True)
-        print(f'     To suppress: bind to 127.0.0.1 or set a password.', flush=True)
+        print(f'     To suppress: bind to 127.0.0.1, set a password, or', flush=True)
+        print(f'     explicitly override with HERMES_WEBUI_ALLOW_INSECURE_BIND=1.', flush=True)
         if within_container:
             print(f'     Note: You are running within a container, must bind to 0.0.0.0 (IPv4) or :: (IPv6) to publish the port.', flush=True)
     elif not is_auth_enabled():

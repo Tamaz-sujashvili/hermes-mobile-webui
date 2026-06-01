@@ -135,6 +135,18 @@ class TestForegroundFlag:
         assert "supervisord" in out
 
 
+class TestHealthProbeHost:
+
+    def test_wildcard_ipv4_probes_loopback(self, import_bootstrap):
+        assert import_bootstrap._health_probe_host("0.0.0.0") == "127.0.0.1"
+
+    def test_wildcard_ipv6_probes_loopback(self, import_bootstrap):
+        assert import_bootstrap._health_probe_host("::") == "[::1]"
+
+    def test_non_wildcard_host_is_preserved(self, import_bootstrap):
+        assert import_bootstrap._health_probe_host("192.168.1.15") == "192.168.1.15"
+
+
 # ---------- _detect_supervisor() ------------------------------------------
 
 
