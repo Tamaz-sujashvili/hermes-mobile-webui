@@ -1,0 +1,126 @@
+# Three-container Docker Compose: Hermes Agent + Hermes WebUI + Mobile Proxy
+#
+# QUICK START:
+#   cp .env.docker.example .env
+#   # set UID/GID and HERMES_MOBILE_PASSWORD
+#   docker compose -f docker-compose.three-container.yml up -d
+#   Open http://localhost:8787 on your Mac
+#   Open http://localhost:${HERMES_MOBILE_PROXY_PORT:-9120} through your private tunnel
+#
+# This is the secure mobile-ready stack:
+#   hermes-agent   — gateway API on port 8642 (CLI, Telegram, cron, tools)
+#   hermes-webui   — browser chat interface on port 8787
+#   mobile-proxy   — password-gated reverse proxy for iPhone / remote browser access
+#
+# All three share the same Hermes home / session state so desktop and mobile
+# sessions stay in sync as long as they point at the same backend state.
+#
+# WHEN NOT TO USE THIS:
+#   - You want the fastest local-only setup
+#     → use docker-compose.yml instead
+#   - You hit bind-mount permission issues on an existing ~/.hermes
+#     → use named volumes (the default) or the single-container file first
+#   - You're on Podman 3.4 or older without keep-id namespace support
+#     → see https://github.com/sunnysktsang/hermes-suite for an all-in-one image
+#
+# KNOWN LIMITATION (#681): tools triggered from the WebUI run in the WebUI
+# container, not the agent container. See docker-compose.two-container.yml
+# for context.
+
+services:
+  hermes-agent:
+    image: nousresearch/hermes-agent:latest
+    container_name: hermes-agent
+    command: gateway run
+    ports:
+      - "127.0.0.1:8642:8642"
+    volumes:
+      - hermes-home:/home/hermes/.hermes
+      - hermes-agent-src:/opt/hermes
+    environment:
+      - HERMES_HOME=/home/hermes/.hermes
+      - HERMES_UID=${UID:-1000}
+      - HERMES_GID=${GID:-1000}
+      # NOTE: The agent's HERMES_HOME_MODE applies to the HERMES_HOME *directory*
+      # mode (default 0700), not credential files. Keep owner execute bits.
+      # - HERMES_HOME_MODE=0750
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "2.0"
+    networks:
+      - hermes-net
+
+  hermes-webui:
+    image: ghcr.io/nesquena/hermes-webui:latest
+    container_name: hermes-webui
+    depends_on:
+      - hermes-agent
+    ports:
+      - "127.0.0.1:8787:8787"
+    volumes:
+      - hermes-home:/home/hermeswebui/.hermes
+      - hermes-agent-src:/home/hermeswebui/.hermes/hermes-agent:ro
+      - ${HERMES_WORKSPACE:-${HOME}/workspace}:/workspace
+    environment:
+      - HERMES_WEBUI_HOST=0.0.0.0
+      - HERMES_WEBUI_PORT=8787
+      - HERMES_WEBUI_STATE_DIR=/home/hermeswebui/.hermes/webui
+      - HERMES_WEBUI_ENABLE_DASHBOARD_LINK=0
+      - WANTED_UID=${UID:-1000}
+      - WANTED_GID=${GID:-1000}
+      # Optional local-only password. The public/mobile path should use the
+      # mobile proxy password gate instead of exposing raw WebUI directly.
+      # - HERMES_WEBUI_PASSWORD=your-local-only-password
+      # NOTE: WebUI's HERMES_HOME_MODE is a credential-file threshold.
+      # - HERMES_SKIP_CHMOD=1
+      # - HERMES_HOME_MODE=0640
+    restart: unless-stopped
+    networks:
+      - hermes-net
+
+  mobile-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile.mobile-proxy
+    container_name: hermes-mobile-proxy
+    depends_on:
+      - hermes-webui
+    environment:
+      - HERMES_MOBILE_WEBUI_UPSTREAM=http://hermes-webui:8787
+      - HERMES_MOBILE_RUNTIME_DIR=${HERMES_MOBILE_RUNTIME_DIR:-/data/mobile-webui}
+      - HERMES_MOBILE_AUTH_PATH=${HERMES_MOBILE_AUTH_PATH:-/data/mobile-webui/auth.json}
+      - HERMES_MOBILE_PASSWORD=${HERMES_MOBILE_PASSWORD:?set HERMES_MOBILE_PASSWORD in .env}
+      - HERMES_MOBILE_DISABLE_DASHBOARD=1
+      - HERMES_MOBILE_PROXY_HOST=0.0.0.0
+      - HERMES_MOBILE_PROXY_PORT=9120
+    ports:
+      - "127.0.0.1:${HERMES_MOBILE_PROXY_PORT:-9120}:9120"
+    volumes:
+      - mobile-proxy-state:${HERMES_MOBILE_RUNTIME_DIR:-/data/mobile-webui}
+    restart: unless-stopped
+    networks:
+      - hermes-net
+
+networks:
+  hermes-net:
+    driver: bridge
+
+volumes:
+  # IMPORTANT — upgrading the agent image:
+  #   The `hermes-agent-src` volume is initialised from the agent image's
+  #   `/opt/hermes` on first `up`, and Docker reuses the volume verbatim on
+  #   later runs — even after `docker pull` of a newer agent image. After
+  #   upgrading the agent image, run:
+  #
+  #     docker compose -f docker-compose.three-container.yml down
+  #     docker volume rm <project>_hermes-agent-src
+  #     docker compose -f docker-compose.three-container.yml pull
+  #     docker compose -f docker-compose.three-container.yml up -d
+  #
+  #   The full procedure (and why) is documented in docs/docker.md.
+  hermes-home:
+  hermes-agent-src:
+  mobile-proxy-state:

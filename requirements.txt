@@ -1,0 +1,8 @@
+# Hermes Mobile WebUI runtime dependencies.
+# The main WebUI server stays lightweight, but the mobile proxy uses FastAPI.
+pyyaml>=6.0,<7
+fastapi>=0.115,<1
+httpx>=0.28,<1
+python-multipart>=0.0.20,<1
+uvicorn>=0.35,<1
+websockets>=15,<16

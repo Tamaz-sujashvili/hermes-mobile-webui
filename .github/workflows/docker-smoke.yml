@@ -1,0 +1,143 @@
+name: Docker smoke
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'Dockerfile'
+      - 'Dockerfile.mobile-proxy'
+      - 'docker_init.bash'
+      - 'docker-compose*.yml'
+      - '.dockerignore'
+      - '.env.docker.example'
+      - '.github/workflows/docker-smoke.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'Dockerfile'
+      - 'Dockerfile.mobile-proxy'
+      - 'docker_init.bash'
+      - 'docker-compose*.yml'
+      - '.dockerignore'
+      - '.env.docker.example'
+      - '.github/workflows/docker-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compose-config:
+    name: Compose config validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate compose files
+        env:
+          HERMES_MOBILE_PASSWORD: smoke-test-password
+        run: |
+          set -euo pipefail
+          docker compose -f docker-compose.yml config > /dev/null
+          docker compose -f docker-compose.two-container.yml config > /dev/null
+          docker compose -f docker-compose.three-container.yml config > /dev/null
+          docker compose -f docker-compose.yml -f docker-compose.mobile.yml config > /dev/null
+          docker compose -f docker-compose.two-container.yml -f docker-compose.mobile.yml config > /dev/null
+
+  smoke:
+    name: Smoke ${{ matrix.variant }}
+    runs-on: ubuntu-latest
+    needs: compose-config
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        variant:
+          - single
+          - single-mobile
+          - two-container
+          - two-mobile
+          - three-container
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve compose inputs
+        id: vars
+        run: |
+          set -euo pipefail
+          case "${{ matrix.variant }}" in
+            single)
+              echo "compose_args=-f docker-compose.yml" >> "$GITHUB_OUTPUT"
+              ;;
+            single-mobile)
+              echo "compose_args=-f docker-compose.yml -f docker-compose.mobile.yml" >> "$GITHUB_OUTPUT"
+              ;;
+            two-container)
+              echo "compose_args=-f docker-compose.two-container.yml" >> "$GITHUB_OUTPUT"
+              ;;
+            two-mobile)
+              echo "compose_args=-f docker-compose.two-container.yml -f docker-compose.mobile.yml" >> "$GITHUB_OUTPUT"
+              ;;
+            three-container)
+              echo "compose_args=-f docker-compose.three-container.yml" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+          echo "project=hermes-smoke-${{ matrix.variant }}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
+
+      - name: Build local WebUI image
+        run: docker build -t ghcr.io/nesquena/hermes-webui:latest .
+
+      - name: Prepare ephemeral host paths
+        id: paths
+        run: |
+          set -euo pipefail
+          STATE_DIR="$(mktemp -d -t hermes-smoke-state-XXXXXX)"
+          WORK_DIR="$(mktemp -d -t hermes-smoke-work-XXXXXX)"
+          echo "state_dir=$STATE_DIR" >> "$GITHUB_OUTPUT"
+          echo "work_dir=$WORK_DIR" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke
+        env:
+          COMPOSE_ARGS: ${{ steps.vars.outputs.compose_args }}
+          PROJECT: ${{ steps.vars.outputs.project }}
+          HERMES_HOME: ${{ steps.paths.outputs.state_dir }}
+          HERMES_WORKSPACE: ${{ steps.paths.outputs.work_dir }}
+          HERMES_MOBILE_PASSWORD: smoke-test-password
+        run: |
+          set -euo pipefail
+
+          cleanup() {
+            local rc=$?
+            docker compose -p "$PROJECT" $COMPOSE_ARGS logs --no-color --tail=200 || true
+            docker compose -p "$PROJECT" $COMPOSE_ARGS down -v --remove-orphans || true
+            rm -rf "$HERMES_HOME" "$HERMES_WORKSPACE" || true
+            return $rc
+          }
+          trap cleanup EXIT
+
+          docker compose -p "$PROJECT" $COMPOSE_ARGS up -d --wait --wait-timeout 120
+
+          attempts=0
+          until curl --fail --silent --max-time 5 http://127.0.0.1:8787/health > /dev/null; do
+            attempts=$((attempts + 1))
+            if [ "$attempts" -ge 30 ]; then
+              echo "WebUI /health never returned 200"
+              exit 1
+            fi
+            sleep 2
+          done
+
+          case "${{ matrix.variant }}" in
+            single-mobile|two-mobile|three-container)
+              attempts=0
+              until curl --fail --silent --max-time 5 http://127.0.0.1:9120/healthz > /dev/null; do
+                attempts=$((attempts + 1))
+                if [ "$attempts" -ge 30 ]; then
+                  echo "mobile proxy /healthz never returned 200"
+                  exit 1
+                fi
+                sleep 2
+              done
+              ;;
+          esac

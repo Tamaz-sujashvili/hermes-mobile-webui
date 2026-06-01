@@ -1,0 +1,39 @@
+# Hermes Mobile WebUI — secure mobile-access overlay
+#
+# Combine with either:
+#   docker compose -f docker-compose.yml -f docker-compose.mobile.yml up -d
+# or:
+#   docker compose -f docker-compose.two-container.yml -f docker-compose.mobile.yml up -d
+
+services:
+  hermes-webui:
+    networks:
+      - mobile-edge
+
+  mobile-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile.mobile-proxy
+    depends_on:
+      hermes-webui:
+        condition: service_started
+    environment:
+      - HERMES_MOBILE_WEBUI_UPSTREAM=http://hermes-webui:8787
+      - HERMES_MOBILE_RUNTIME_DIR=${HERMES_MOBILE_RUNTIME_DIR:-/data/mobile-webui}
+      - HERMES_MOBILE_AUTH_PATH=${HERMES_MOBILE_AUTH_PATH:-/data/mobile-webui/auth.json}
+      - HERMES_MOBILE_PASSWORD=${HERMES_MOBILE_PASSWORD:?set HERMES_MOBILE_PASSWORD in .env}
+      - HERMES_MOBILE_DISABLE_DASHBOARD=1
+    ports:
+      - "127.0.0.1:${HERMES_MOBILE_PROXY_PORT:-9120}:9120"
+    volumes:
+      - mobile-proxy-state:${HERMES_MOBILE_RUNTIME_DIR:-/data/mobile-webui}
+    restart: unless-stopped
+    networks:
+      - mobile-edge
+
+volumes:
+  mobile-proxy-state:
+
+networks:
+  mobile-edge:
+    driver: bridge

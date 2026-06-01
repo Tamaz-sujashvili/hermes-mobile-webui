@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.example.hermes-mobile-webui.proxy</string>
+    <key>ProgramArguments</key>
+    <array>
+      <string>{{REPO_ROOT}}/scripts/run_mobile_proxy.sh</string>
+    </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>HERMES_HOME</key>
+      <string>{{HERMES_HOME}}</string>
+      <key>HERMES_MOBILE_WEBUI_UPSTREAM</key>
+      <string>http://127.0.0.1:8787</string>
+      <key>HERMES_MOBILE_RUNTIME_DIR</key>
+      <string>{{HERMES_HOME}}/mobile-webui</string>
+      <key>HERMES_MOBILE_AUTH_PATH</key>
+      <string>{{HERMES_HOME}}/mobile-webui/auth.json</string>
+      <key>HERMES_MOBILE_DISABLE_DASHBOARD</key>
+      <string>1</string>
+    </dict>
+    <key>KeepAlive</key>
+    <true/>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>WorkingDirectory</key>
+    <string>{{REPO_ROOT}}</string>
+    <key>StandardOutPath</key>
+    <string>{{LOG_DIR}}/hermes-mobile-proxy.log</string>
+    <key>StandardErrorPath</key>
+    <string>{{LOG_DIR}}/hermes-mobile-proxy.err.log</string>
+  </dict>
+</plist>

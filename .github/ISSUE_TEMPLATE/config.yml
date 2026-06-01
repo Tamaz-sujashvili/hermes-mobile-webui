@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security issue
+    url: https://github.com/Tamaz-sujashvili/hermes-mobile-webui/security
+    about: Use a private security advisory for vulnerabilities.

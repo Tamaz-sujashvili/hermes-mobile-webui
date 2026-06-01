@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.example.hermes-mobile-webui.webui</string>
+    <key>ProgramArguments</key>
+    <array>
+      <string>{{REPO_ROOT}}/scripts/run_webui_foreground.sh</string>
+    </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>HERMES_HOME</key>
+      <string>{{HERMES_HOME}}</string>
+      <key>HERMES_WEBUI_ENABLE_DASHBOARD_LINK</key>
+      <string>0</string>
+    </dict>
+    <key>KeepAlive</key>
+    <true/>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>WorkingDirectory</key>
+    <string>{{REPO_ROOT}}</string>
+    <key>StandardOutPath</key>
+    <string>{{LOG_DIR}}/hermes-mobile-webui.log</string>
+    <key>StandardErrorPath</key>
+    <string>{{LOG_DIR}}/hermes-mobile-webui.err.log</string>
+  </dict>
+</plist>

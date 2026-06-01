@@ -1,0 +1,13 @@
+.git
+.pytest_cache
+__pycache__
+*.pyc
+*.pyo
+tests/
+.env*
+*.log
+*.pid
+auth.json
+public_url.txt
+mobile-proxy-state/
+screenshots/
