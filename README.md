@@ -136,6 +136,10 @@ For an always-on setup on a Mac mini or laptop:
 
 The native service path uses `bootstrap.py --foreground` for the WebUI and `uvicorn mobile_proxy.app:APP` for the proxy, which keeps launchd restart behavior predictable.
 
+If your Hermes install depends on Node-based helpers managed by `nvm`, `asdf`,
+or similar tools, set `HERMES_WEBUI_EXTRA_PATH` in the service environment so
+launchd can see that toolchain too. See [docs/mobile-macos.md](docs/mobile-macos.md).
+
 ## Release hygiene
 
 The repo includes a public-release audit that checks for:

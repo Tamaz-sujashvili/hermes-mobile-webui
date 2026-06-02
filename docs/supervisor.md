@@ -75,7 +75,7 @@ sees the long-lived server as the original child. ``KeepAlive=true`` /
         <key>HOME</key>
         <string>/Users/yourname</string>
         <key>PATH</key>
-        <string>/usr/local/bin:/usr/bin:/bin</string>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
     </dict>
 </dict>
 </plist>
@@ -98,6 +98,16 @@ launchctl load   ~/Library/LaunchAgents/com.example.hermes-webui.plist
 launchd sets ``XPC_SERVICE_NAME`` automatically, so even without the
 ``--foreground`` argument the Web UI will auto-promote to foreground mode.
 The flag is still recommended as documentation of intent.
+
+If your Hermes setup needs Node helpers installed through ``nvm`` / ``asdf`` /
+Volta, launchd will not discover them from your interactive shell profile.
+Set ``HERMES_WEBUI_EXTRA_PATH`` in the service environment to prepend that bin
+directory before startup, for example:
+
+```xml
+<key>HERMES_WEBUI_EXTRA_PATH</key>
+<string>/Users/yourname/.nvm/versions/node/v20.20.2/bin</string>
+```
 
 ## systemd (Linux)
 

@@ -3,6 +3,11 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON="${HERMES_WEBUI_PYTHON:-}"
+EXTRA_PATH="${HERMES_WEBUI_EXTRA_PATH:-}"
+
+if [[ -n "${EXTRA_PATH}" ]]; then
+  export PATH="${EXTRA_PATH}:${PATH}"
+fi
 
 if [[ -z "${PYTHON}" ]]; then
   if [[ -x "${REPO_ROOT}/.venv/bin/python" ]]; then

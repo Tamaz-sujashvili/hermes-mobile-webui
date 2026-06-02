@@ -20,6 +20,8 @@
       <string>{{HERMES_HOME}}/mobile-webui/auth.json</string>
       <key>HERMES_MOBILE_DISABLE_DASHBOARD</key>
       <string>1</string>
+      <key>PATH</key>
+      <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
     </dict>
     <key>KeepAlive</key>
     <true/>
