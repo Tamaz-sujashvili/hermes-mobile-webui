@@ -203,16 +203,18 @@ class Handler(BaseHTTPRequestHandler):
     _ver_suffix = WEBUI_VERSION.removeprefix('v')
     server_version = ('HermesWebUI/' + _ver_suffix) if _ver_suffix != 'unknown' else 'HermesWebUI'
     _CSP_POLICY = (
-        "default-src 'self'; "
+        "default-src 'self' https://*.cloudflareaccess.com; "
         "base-uri 'self'; "
+        "form-action 'self'; "
         "object-src 'none'; "
         "frame-ancestors 'self'; "
-        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
-        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
-        "img-src 'self' data: blob:; "
-        "font-src 'self' data:; "
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; "
+        "img-src 'self' data: https: blob:; "
+        "font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; "
         "media-src 'self' data: blob:; "
-        "connect-src 'self' http://127.0.0.1:* http://localhost:* ws://127.0.0.1:* ws://localhost:*; "
+        "connect-src 'self' https://cdn.jsdelivr.net; "
+        "manifest-src 'self' https://*.cloudflareaccess.com; "
         "report-uri /api/csp-report; report-to csp-endpoint"
     )
     _CSP_REPORT_TO = json.dumps(
@@ -231,7 +233,6 @@ class Handler(BaseHTTPRequestHandler):
     def end_headers(self) -> None:
         policy = self.csp_policy()
         self.send_header("Content-Security-Policy", policy)
-        self.send_header("Content-Security-Policy-Report-Only", policy)
         self.send_header("Report-To", self._CSP_REPORT_TO)
         super().end_headers()
 
@@ -405,6 +406,12 @@ def main() -> None:
             within_container = True
     except FileNotFoundError:
         pass
+    except OSError as exc:
+        print(
+            f"[!!] WARNING: Could not read /.within_container ({exc}); "
+            "assuming host runtime.",
+            flush=True,
+        )
 
     if within_container:
         print('[ok] Running within container.', flush=True)

@@ -51,6 +51,10 @@ python3 bootstrap.py
 
 Open [http://127.0.0.1:8787](http://127.0.0.1:8787).
 
+If Hermes Agent is not installed yet, bootstrap will now stop and ask you to
+install it manually unless you opt in to the upstream installer with
+`python3 bootstrap.py --allow-official-installer`.
+
 To add the mobile proxy locally:
 
 ```bash

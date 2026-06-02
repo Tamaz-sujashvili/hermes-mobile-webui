@@ -21,6 +21,9 @@ python3 bootstrap.py
 
 Then open `http://127.0.0.1:8787`.
 
+If Hermes Agent is missing, bootstrap now fails closed by default. Install the
+agent manually, or opt in explicitly with `python3 bootstrap.py --allow-official-installer`.
+
 If you also want mobile access:
 
 ```bash

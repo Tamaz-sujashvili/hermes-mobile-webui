@@ -9,7 +9,7 @@ import api.routes as routes
 from server import Handler
 
 
-def test_handler_adds_content_security_policy_and_report_only(monkeypatch):
+def test_handler_adds_enforced_content_security_policy(monkeypatch):
     sent_headers = []
     handler = Handler.__new__(Handler)
     handler.send_header = lambda key, value: sent_headers.append((key, value))
@@ -19,14 +19,15 @@ def test_handler_adds_content_security_policy_and_report_only(monkeypatch):
 
     headers = dict(sent_headers)
     assert "Content-Security-Policy" in headers
-    assert "Content-Security-Policy-Report-Only" in headers
+    assert "Content-Security-Policy-Report-Only" not in headers
     assert "Report-To" in headers
-    assert headers["Content-Security-Policy"] == headers["Content-Security-Policy-Report-Only"]
     policy = headers["Content-Security-Policy"]
     assert "default-src 'self'" in policy
     assert "object-src 'none'" in policy
     assert "frame-ancestors 'self'" in policy
     assert "base-uri 'self'" in policy
+    assert "form-action 'self'" in policy
+    assert "manifest-src 'self'" in policy
     assert "report-uri /api/csp-report" in policy
     assert "report-to csp-endpoint" in policy
     assert json.loads(headers["Report-To"]) == {
@@ -39,13 +40,16 @@ def test_handler_adds_content_security_policy_and_report_only(monkeypatch):
 def test_csp_policy_keeps_legacy_inline_allowances_for_current_ui():
     policy = Handler.csp_policy()
 
-    assert "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net" in policy
-    assert "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net" in policy
+    assert "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://static.cloudflareinsights.com" in policy
+    assert "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com" in policy
     # unsafe-eval was dropped after Opus stage-339 verification — no production
     # JS uses eval(), new Function(), or string-form setTimeout/setInterval.
     assert "'unsafe-eval'" not in policy
-    assert "img-src 'self' data: blob:" in policy
-    assert "connect-src 'self'" in policy
+    assert "img-src 'self' data: https: blob:" in policy
+    assert "font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com" in policy
+    assert "connect-src 'self' https://cdn.jsdelivr.net" in policy
+    assert "http://127.0.0.1:*" not in policy
+    assert "ws://127.0.0.1:*" not in policy
 
 
 class _FakeHandler:

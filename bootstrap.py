@@ -4,11 +4,13 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import platform
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -19,6 +21,50 @@ from pathlib import Path
 
 INSTALLER_URL = "https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh"
 REPO_ROOT = Path(__file__).resolve().parent
+
+
+def _is_unescaped_quoted_value(raw: str, quote: str) -> bool:
+    if len(raw) < 2 or raw[0] != quote or raw[-1] != quote:
+        return False
+    backslashes = 0
+    idx = len(raw) - 2
+    while idx >= 0 and raw[idx] == "\\":
+        backslashes += 1
+        idx -= 1
+    return backslashes % 2 == 0
+
+
+def _iter_dotenv_assignments(text: str):
+    lines = text.splitlines()
+    idx = 0
+    while idx < len(lines):
+        raw_line = lines[idx]
+        idx += 1
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = raw_line.split("=", 1)
+        key = key.strip()
+        if key.startswith("export "):
+            key = key[7:].strip()
+        value = value.lstrip()
+        if not key:
+            continue
+        if value[:1] in ("'", '"'):
+            quote = value[0]
+            if _is_unescaped_quoted_value(value, quote):
+                value = value[1:-1]
+            else:
+                parts = [value[1:]]
+                while idx < len(lines):
+                    next_line = lines[idx]
+                    idx += 1
+                    if next_line.endswith(quote):
+                        parts.append(next_line[:-1])
+                        break
+                    parts.append(next_line)
+                value = "\n".join(parts)
+        yield key, value
 
 
 def _load_repo_dotenv() -> None:
@@ -47,16 +93,7 @@ def _load_repo_dotenv() -> None:
         "on",
     )
     try:
-        for raw_line in env_path.read_text(encoding="utf-8").splitlines():
-            line = raw_line.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            k, v = line.split("=", 1)
-            k = k.strip()
-            # Strip optional 'export' prefix (common in copy-pasted shell snippets)
-            if k.startswith("export "):
-                k = k[7:].strip()
-            v = v.strip().strip('"').strip("'")
+        for k, v in _iter_dotenv_assignments(env_path.read_text(encoding="utf-8")):
             if k:
                 if override_existing or k not in os.environ:
                     os.environ[k] = v
@@ -268,11 +305,29 @@ def hermes_command_exists() -> bool:
     return shutil.which("hermes") is not None
 
 
-def install_hermes_agent() -> None:
-    info(f"Hermes Agent not found. Attempting install via {INSTALLER_URL}")
-    subprocess.run(
-        ["/bin/bash", "-lc", f"curl -fsSL {INSTALLER_URL} | bash"], check=True
-    )
+def install_hermes_agent(allow_remote_script: bool = False) -> None:
+    if not allow_remote_script:
+        raise RuntimeError(
+            "Hermes Agent was not found. Automatic installation is disabled by default "
+            "because it downloads and executes the official installer script. "
+            "Install Hermes Agent manually, or re-run bootstrap with "
+            "--allow-official-installer (or HERMES_WEBUI_ALLOW_OFFICIAL_INSTALLER=1) "
+            "to opt in explicitly."
+        )
+    info(f"Hermes Agent not found. Downloading official installer from {INSTALLER_URL}")
+    with urllib.request.urlopen(INSTALLER_URL, timeout=15) as response:  # nosec B310
+        script_bytes = response.read()
+    with tempfile.NamedTemporaryFile("wb", delete=False, suffix=".sh") as tmp:
+        tmp.write(script_bytes)
+        tmp_path = Path(tmp.name)
+    try:
+        tmp_path.chmod(0o700)
+        subprocess.run(["/bin/bash", str(tmp_path)], check=True)
+    finally:
+        try:
+            tmp_path.unlink()
+        except FileNotFoundError:
+            pass
 
 
 def wait_for_health(url: str, timeout: float = 25.0) -> bool:
@@ -283,7 +338,8 @@ def wait_for_health(url: str, timeout: float = 25.0) -> bool:
     while time.time() < deadline:
         try:
             with urllib.request.urlopen(url, timeout=2) as response:  # nosec B310
-                if b'"status": "ok"' in response.read():
+                payload = json.loads(response.read().decode("utf-8"))
+                if isinstance(payload, dict) and payload.get("status") == "ok":
                     return True
         except Exception:
             time.sleep(0.4)
@@ -321,6 +377,14 @@ def parse_args() -> argparse.Namespace:
         "--skip-agent-install",
         action="store_true",
         help="Fail instead of attempting the official Hermes installer.",
+    )
+    parser.add_argument(
+        "--allow-official-installer",
+        action="store_true",
+        help=(
+            "Opt in to downloading and executing the official Hermes installer "
+            "script if Hermes Agent is missing."
+        ),
     )
     parser.add_argument(
         "--foreground",
@@ -409,7 +473,11 @@ def main() -> int:
             raise RuntimeError(
                 "Hermes Agent was not found and auto-install was disabled."
             )
-        install_hermes_agent()
+        allow_official_installer = args.allow_official_installer or (
+            os.getenv("HERMES_WEBUI_ALLOW_OFFICIAL_INSTALLER", "").strip().lower()
+            in ("1", "true", "yes", "on")
+        )
+        install_hermes_agent(allow_remote_script=allow_official_installer)
         agent_dir = discover_agent_dir()
 
     python_exe = ensure_python_has_webui_deps(discover_launcher_python(agent_dir), agent_dir)

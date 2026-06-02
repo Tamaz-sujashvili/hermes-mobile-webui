@@ -148,6 +148,13 @@ class TestLoadRepoDotenv:
             "'export KEY=value' lines must set KEY, not 'export KEY'"
         )
 
+    def test_multiline_double_quoted_value_preserved(self, tmp_path):
+        self._run(
+            tmp_path,
+            'MULTILINE_CERT="line-one\nline-two\nline-three"\n',
+        )
+        assert os.environ.get("MULTILINE_CERT") == "line-one\nline-two\nline-three"
+
 
 # ---------------------------------------------------------------------------
 # Structural tests — confirm the fix is in place
