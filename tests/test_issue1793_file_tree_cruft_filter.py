@@ -81,7 +81,7 @@ def test_panel_actions_row_has_workspace_prefs_kebab():
     panel actions row to expose the menu.
     """
     assert 'id="btnWorkspacePrefs"' in INDEX_HTML
-    assert 'onclick="toggleWorkspacePrefsMenu(event)"' in INDEX_HTML
+    assert 'data-ui-click="toggleWorkspacePrefsMenu(event)"' in INDEX_HTML
     # Tooltip is i18n-aware
     assert 'data-i18n-title="workspace_options"' in INDEX_HTML
     # Kebab carries an accent dot for non-default state

@@ -243,7 +243,7 @@ function _statusCardHtml(card){
   const shortSessionId=sessionId.length>22?`${sessionId.slice(0,10)}…${sessionId.slice(-8)}`:sessionId;
   const copyIcon=(typeof li==='function')?li('copy',13):'Copy';
   const copyBtn=sessionId
-    ? `<button class="status-card-session-copy" type="button" data-copy-status-session="${esc(card.sessionId||'')}" title="${esc(t('copy'))}" onclick="copyStatusSessionId(this);event.stopPropagation()"><span>${esc(shortSessionId)}</span>${copyIcon}</button>`
+    ? `<button class="status-card-session-copy" type="button" data-copy-status-session="${esc(card.sessionId||'')}" title="${esc(t('copy'))}" data-ui-click="copyStatusSessionId(this);event.stopPropagation()"><span>${esc(shortSessionId)}</span>${copyIcon}</button>`
     : '';
   const rowHtml=rows.map(row=>`
     <div class="status-card-row">
@@ -363,7 +363,7 @@ function _questionJumpButtonHtml(questionRawIdx){
   if(typeof questionRawIdx!=='number'||questionRawIdx<0) return '';
   const label=t('jump_to_question')||'Question';
   const title=t('jump_to_question_label')||'Jump to the question for this response';
-  return `<button class="msg-question-jump-btn" type="button" title="${esc(title)}" aria-label="${esc(title)}" onclick="jumpToTurnQuestion(${questionRawIdx})"><span aria-hidden="true">↑</span><span>${esc(label)}</span></button>`;
+  return `<button class="msg-question-jump-btn" type="button" title="${esc(title)}" aria-label="${esc(title)}" data-ui-click="jumpToTurnQuestion(${questionRawIdx})"><span aria-hidden="true">↑</span><span>${esc(label)}</span></button>`;
 }
 
 function _highlightQuestionRow(row){
@@ -3703,7 +3703,7 @@ function showToast(msg,ms,type){
   const duration=(ms==null)?(t==='error'?TOAST_ERROR_DEFAULT_MS:TOAST_DEFAULT_MS):ms;
   el.className='toast show '+t;
   el.dataset.toastMessage=s;
-  if(t==='error') el.innerHTML=`<span class="toast-message">${esc(s)}</span><button class="toast-copy" type="button" data-toast-copy="1" onclick="copyToastText(this);event.stopPropagation()">Copy</button>`;
+  if(t==='error') el.innerHTML=`<span class="toast-message">${esc(s)}</span><button class="toast-copy" type="button" data-toast-copy="1" data-ui-click="copyToastText(this);event.stopPropagation()">Copy</button>`;
   else el.textContent=s;
   el.onmouseenter=()=>clearToastDismissTimer(el);
   el.onmouseleave=()=>setToastDismissTimer(el,duration);
@@ -4990,9 +4990,9 @@ function _assistantTurnBlocks(turn){
 }
 function _thinkingCardHtml(text, open){
   const clean=_sanitizeThinkingDisplayText(text);
-  const copyBtn=`<button class="thinking-copy-btn" onclick="event.stopPropagation();_copyThinkingText(this)" title="${t('copy')}" aria-label="${t('copy')}">${li('copy',12)}</button>`;
+  const copyBtn=`<button class="thinking-copy-btn" data-ui-click="event.stopPropagation();_copyThinkingText(this)" title="${t('copy')}" aria-label="${t('copy')}">${li('copy',12)}</button>`;
   const classes=`thinking-card${open?' open':''}`;
-  return `<div class="${classes}"><div class="thinking-card-header" onclick="this.parentElement.classList.toggle('open')"><span class="thinking-card-icon">${li('lightbulb',14)}</span><span class="thinking-card-label">${t('thinking')}</span><span class="thinking-card-btn-row">${copyBtn}<span class="thinking-card-toggle">${li('chevron-right',12)}</span></span></div><div class="thinking-card-body"><pre>${esc(clean)}</pre></div></div>`;
+  return `<div class="${classes}"><div class="thinking-card-header" data-ui-click="this.parentElement.classList.toggle('open')"><span class="thinking-card-icon">${li('lightbulb',14)}</span><span class="thinking-card-label">${t('thinking')}</span><span class="thinking-card-btn-row">${copyBtn}<span class="thinking-card-toggle">${li('chevron-right',12)}</span></span></div><div class="thinking-card-body"><pre>${esc(clean)}</pre></div></div>`;
 }
 function isSimplifiedToolCalling(){
   return window._simplifiedToolCalling!==false;
@@ -5086,7 +5086,7 @@ function ensureActivityGroup(inner, opts){
       group.setAttribute('data-live-tool-call-group','1');
       group.setAttribute('data-live-activity-current','1');
     }
-    group.innerHTML=`<button type="button" class="tool-call-group-summary" aria-expanded="${collapsed?'false':'true'}" onclick="_toggleActivityGroup(this)"><span class="tool-call-group-chevron">${li('chevron-right',12)}</span><span class="tool-call-group-label">Activity</span><span class="tool-call-group-duration"></span></button><div class="tool-call-group-body"></div>`;
+    group.innerHTML=`<button type="button" class="tool-call-group-summary" aria-expanded="${collapsed?'false':'true'}" data-ui-click="_toggleActivityGroup(this)"><span class="tool-call-group-chevron">${li('chevron-right',12)}</span><span class="tool-call-group-label">Activity</span><span class="tool-call-group-duration"></span></button><div class="tool-call-group-body"></div>`;
     const anchor=opts.anchor||null;
     if(anchor&&anchor.parentElement===inner) anchor.insertAdjacentElement('afterend', group);
     else inner.appendChild(group);
@@ -5175,7 +5175,7 @@ function _compressionCardsHtml(state){
   return `
     <div class="tool-card-row compression-card-row" data-compression-card="1">
       <div class="tool-card tool-card-compress-command">
-        <div class="tool-card-header" onclick="this.closest('.tool-card').classList.toggle('open')">
+        <div class="tool-card-header" data-ui-click="this.closest('.tool-card').classList.toggle('open')">
           <span class="tool-card-icon">${li('settings',13)}</span>
           <span class="tool-card-name">${esc(t('command_label'))}</span>
           <span class="tool-card-preview">${esc(cmdText)}</span>
@@ -5404,12 +5404,12 @@ function _compressionReferenceCardHtml(text, open=false){
   return `
     <div class="tool-card-row compression-card-row" data-compression-card="1" data-raw-text="${esc(text)}">
       <div class="tool-card tool-card-compress-reference${open?' open':''}">
-        <div class="tool-card-header" onclick="this.closest('.tool-card').classList.toggle('open')">
+        <div class="tool-card-header" data-ui-click="this.closest('.tool-card').classList.toggle('open')">
           <span class="tool-card-icon">${li('star',13)}</span>
           <span class="tool-card-name">${esc(copy.label)}</span>
           <span class="tool-card-preview">${esc(copy.preview)} · ${esc(preview)}</span>
           <span class="tool-card-toggle">${li('chevron-right',12)}</span>
-          <button class="msg-copy-btn msg-action-btn tool-card-copy compression-reference-copy" title="${t('copy')}" onclick="copyMsg(this);event.stopPropagation()">${li('copy',13)}</button>
+          <button class="msg-copy-btn msg-action-btn tool-card-copy compression-reference-copy" title="${t('copy')}" data-ui-click="copyMsg(this);event.stopPropagation()">${li('copy',13)}</button>
         </div>
         <div class="tool-card-detail">
           <div class="tool-card-result">
@@ -5522,7 +5522,7 @@ function _compressionStatusCardHtml({
   const toggleHtml = hasBody ? `<span class="tool-card-toggle">${li('chevron-right',12)}</span>` : '';
   return `
     <div class="tool-card ${variantClass}${openClass}">
-      <div class="tool-card-header" onclick="this.closest('.tool-card').classList.toggle('open')">
+      <div class="tool-card-header" data-ui-click="this.closest('.tool-card').classList.toggle('open')">
         ${statusIcon}
         <span class="tool-card-name">${esc(statusLabel)}</span>
         <span class="tool-card-preview">${esc(previewText)}</span>
@@ -5580,7 +5580,7 @@ function _handoffCardsHtml(state){
   return `
     <div class="tool-card-row compression-card-row handoff-card-row" data-compression-card="1" data-handoff-card="1">
       <div class="tool-card tool-card-handoff-summary${isError?' tool-card-compress-error':''} open">
-        <div class="tool-card-header" onclick="this.closest('.tool-card').classList.toggle('open')">
+        <div class="tool-card-header" data-ui-click="this.closest('.tool-card').classList.toggle('open')">
           ${icon}
           <span class="tool-card-name">${esc(label)}</span>
           ${meta?`<span class="tool-card-preview">${esc(meta)}</span>`:''}
@@ -5981,12 +5981,12 @@ function renderMessages(options){
     }
     const statusHtml = (!isUser&&m._statusCard) ? _statusCardHtml(m._statusCard) : '';
     const isEditableUser=isUser&&rawIdx===lastUserRawIdx;
-    const editBtn  = isEditableUser ? `<button class="msg-action-btn" title="${t('edit_message')}" onclick="editMessage(this)">${li('pencil',13)}</button>` : '';
-    const undoBtn  = isLastAssistant ? `<button class="msg-action-btn" title="${t('undo_exchange')}" onclick="undoLastExchange()">${li('undo',13)}</button>` : '';
-    const retryBtn = isLastAssistant ? `<button class="msg-action-btn" title="${t('regenerate')}" onclick="regenerateResponse(this)">${li('rotate-ccw',13)}</button>` : '';
-    const copyBtn  = `<button class="msg-copy-btn msg-action-btn" title="${t('copy')}" onclick="copyMsg(this)">${li('copy',13)}</button>`;
-    const forkBtn  = `<button class="msg-action-btn" title="${t('fork_from_here')}" onclick="forkFromMessage(${rawIdx+1})">${li('git-branch',13)}</button>`;
-    const ttsBtn   = !isUser ? `<button class="msg-action-btn msg-tts-btn" title="${t('tts_listen')||'Listen'}" onclick="speakMessage(this)">${li('volume-2',13)}</button>` : '';
+    const editBtn  = isEditableUser ? `<button class="msg-action-btn" title="${t('edit_message')}" data-ui-click="editMessage(this)">${li('pencil',13)}</button>` : '';
+    const undoBtn  = isLastAssistant ? `<button class="msg-action-btn" title="${t('undo_exchange')}" data-ui-click="undoLastExchange()">${li('undo',13)}</button>` : '';
+    const retryBtn = isLastAssistant ? `<button class="msg-action-btn" title="${t('regenerate')}" data-ui-click="regenerateResponse(this)">${li('rotate-ccw',13)}</button>` : '';
+    const copyBtn  = `<button class="msg-copy-btn msg-action-btn" title="${t('copy')}" data-ui-click="copyMsg(this)">${li('copy',13)}</button>`;
+    const forkBtn  = `<button class="msg-action-btn" title="${t('fork_from_here')}" data-ui-click="forkFromMessage(${rawIdx+1})">${li('git-branch',13)}</button>`;
+    const ttsBtn   = !isUser ? `<button class="msg-action-btn msg-tts-btn" title="${t('tts_listen')||'Listen'}" data-ui-click="speakMessage(this)">${li('volume-2',13)}</button>` : '';
     const tsVal=m._ts||m.timestamp;
     // _formatInServerTz handles fractional-hour offsets (India +0530 etc.)
     // correctly via offset arithmetic; bare toLocaleString is the browser-tz fallback.
@@ -6459,7 +6459,7 @@ function buildToolCard(tc){
   if(isSubagent) previewText=previewText.replace(/^(?:\u{1F500}|↳)\s*/u,'');
   row.innerHTML=`
     <div class="${cardClass}">
-      <div class="tool-card-header" onclick="this.closest('.tool-card').classList.toggle('open')">
+      <div class="tool-card-header" data-ui-click="this.closest('.tool-card').classList.toggle('open')">
         ${runIndicator}
         <span class="tool-card-icon">${icon}</span>
         <span class="tool-card-name">${esc(displayName)}</span>
@@ -6472,7 +6472,7 @@ function buildToolCard(tc){
         }</div>`:''}
         ${displaySnippet?`<div class="tool-card-result">
           <pre>${esc(displaySnippet)}</pre>
-          ${hasMore?`<button class="tool-card-more" data-full="${esc(tc.snippet||'').replace(/"/g,'&quot;')}" data-short="${esc(displaySnippet||'').replace(/"/g,'&quot;')}" data-more-label="${esc(moreLabel)}" data-less-label="${esc(lessLabel)}" onclick="event.stopPropagation();const p=this.previousElementSibling;const full=this.dataset.full;const short=this.dataset.short;p.textContent=p.textContent===short?full:short;this.textContent=p.textContent===short?this.dataset.moreLabel:this.dataset.lessLabel">${esc(moreLabel)}</button>`:''}
+          ${hasMore?`<button class="tool-card-more" data-full="${esc(tc.snippet||'').replace(/"/g,'&quot;')}" data-short="${esc(displaySnippet||'').replace(/"/g,'&quot;')}" data-more-label="${esc(moreLabel)}" data-less-label="${esc(lessLabel)}" data-ui-click="event.stopPropagation();const p=this.previousElementSibling;const full=this.dataset.full;const short=this.dataset.short;p.textContent=p.textContent===short?full:short;this.textContent=p.textContent===short?this.dataset.moreLabel:this.dataset.lessLabel">${esc(moreLabel)}</button>`:''}
         </div>`:''}
       </div>`:''}
     </div>`;
@@ -7296,7 +7296,7 @@ function _thinkingMarkup(text=''){
   const clean=_sanitizeThinkingDisplayText(text);
   const openClass=isSimplifiedToolCalling()?'':' open';
   return (clean&&String(clean).trim())
-    ? `<div class="thinking-card${openClass}"><div class="thinking-card-header" onclick="this.parentElement.classList.toggle('open')"><span class="thinking-card-icon">${li('lightbulb',14)}</span><span class="thinking-card-label">${t('thinking')}</span><span class="thinking-card-toggle">${li('chevron-right',12)}</span></div><div class="thinking-card-body"><pre>${esc(String(clean).trim())}</pre></div></div>`
+    ? `<div class="thinking-card${openClass}"><div class="thinking-card-header" data-ui-click="this.parentElement.classList.toggle('open')"><span class="thinking-card-icon">${li('lightbulb',14)}</span><span class="thinking-card-label">${t('thinking')}</span><span class="thinking-card-toggle">${li('chevron-right',12)}</span></div><div class="thinking-card-body"><pre>${esc(String(clean).trim())}</pre></div></div>`
     : `<div class="thinking"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
 }
 function _renderThinkingInto(row,text=''){
@@ -7601,7 +7601,7 @@ function _buildWorkspacePrefsMenu(){
   row.setAttribute('role','menuitemcheckbox');
   row.innerHTML=
     '<input type="checkbox" id="workspaceShowHiddenFiles" '+
-    'onchange="toggleWorkspaceHiddenFiles(this.checked)">'+
+    'data-ui-change="toggleWorkspaceHiddenFiles(this.checked)">'+
     '<span class="workspace-prefs-copy">'+
       '<span class="workspace-prefs-name">'+esc(labelTxt)+'</span>'+
       '<span class="workspace-prefs-meta">'+esc(descTxt)+'</span>'+

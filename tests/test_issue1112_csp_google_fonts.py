@@ -37,7 +37,7 @@ class TestCSPGoogleFonts:
         src = _helpers_src()
         for directive in (
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline'",
+            "script-src 'self'",
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data:",
             "font-src 'self' data:",

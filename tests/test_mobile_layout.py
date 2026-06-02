@@ -556,9 +556,9 @@ def test_workspace_close_button_present():
     # lower-level functions directly.  handleWorkspaceClose is preferred because
     # it dismisses a file preview first before closing the panel.
     has_close = (
-        'onclick="handleWorkspaceClose()"' in HTML or
-        'onclick="closeWorkspacePanel()"' in HTML or
-        'onclick="toggleWorkspacePanel()"' in HTML
+        'data-ui-click="handleWorkspaceClose()"' in HTML or
+        'data-ui-click="closeWorkspacePanel()"' in HTML or
+        'data-ui-click="toggleWorkspacePanel()"' in HTML
     )
     assert has_close, \
         "handleWorkspaceClose() or closeWorkspacePanel() must be wired to a button to close the workspace panel on mobile"
@@ -861,9 +861,9 @@ def test_model_and_reasoning_controls_live_in_mobile_overflow_panel():
         "mobile model action must be inside the overflow panel"
     assert 'id="composerMobileReasoningAction"' in panel_html, \
         "mobile reasoning action must be inside the overflow panel"
-    assert 'onclick="toggleModelDropdown()"' in panel_html, \
+    assert 'data-ui-click="toggleModelDropdown()"' in panel_html, \
         "mobile model action must reuse the existing model dropdown"
-    assert 'onclick="toggleReasoningDropdown()"' in panel_html, \
+    assert 'data-ui-click="toggleReasoningDropdown()"' in panel_html, \
         "mobile reasoning action must reuse the existing reasoning dropdown"
     assert 'id="composerMobileModelLabel"' in panel_html, \
         "mobile model action must expose the selected model label"
@@ -971,7 +971,7 @@ def test_workspace_control_lives_in_mobile_overflow_panel():
     panel_html = HTML[panel_start:panel_end]
     assert 'id="composerMobileWorkspaceAction"' in panel_html, \
         "mobile workspace action must be inside the overflow panel"
-    assert 'onclick="toggleComposerWsDropdown()"' in panel_html, \
+    assert 'data-ui-click="toggleComposerWsDropdown()"' in panel_html, \
         "mobile workspace action must reuse the existing workspace dropdown"
     assert 'id="composerMobileWorkspaceLabel"' in panel_html, \
         "mobile workspace action must expose the current workspace label"

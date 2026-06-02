@@ -14,7 +14,7 @@ This file tracks UI bugs and polish items. Fixed items are kept for reference.
 
 - **os.environ race condition in concurrent sessions** — Concurrent agent sessions share process-level os.environ for TERMINAL_CWD, HERMES_SESSION_KEY, and HERMES_HOME. _ENV_LOCK serializes mutations but does not fully isolate env vars during agent execution. Upstream fix pending in hermes-agent. (#195)
 
-- **CSP still depends on `unsafe-inline`** — The current frontend still uses inline scripts, inline event handlers, and some inline style attributes, so the shipped CSP retains `'unsafe-inline'` for compatibility. This is a known hardening gap until the frontend is refactored to move those behaviors into external assets. (#security-hardening)
+- **`style-src` still depends on `unsafe-inline`** — The current frontend still uses a large number of inline `style=""` attributes and style fragments inside generated HTML, so the shipped CSP retains `'unsafe-inline'` for styles only. Script-side inline handlers have been removed, but style hardening still needs a broader CSS refactor. (#security-hardening)
 
 ---
 

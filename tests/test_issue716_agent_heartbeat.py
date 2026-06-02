@@ -176,7 +176,7 @@ def test_agent_health_banner_markup_and_styles_exist():
     assert 'id="agentHealthBanner"' in INDEX_HTML
     assert 'role="alert"' in INDEX_HTML
     assert 'aria-live="assertive"' in INDEX_HTML
-    assert 'onclick="dismissAgentHealthAlert()"' in INDEX_HTML
+    assert 'data-ui-click="dismissAgentHealthAlert()"' in INDEX_HTML
     assert ".agent-health-banner" in STYLE_CSS
     assert ".agent-health-banner.visible" in STYLE_CSS
     assert ".agent-health-dismiss" in STYLE_CSS

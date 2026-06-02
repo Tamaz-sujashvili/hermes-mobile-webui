@@ -12,7 +12,7 @@ CHANGELOG = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
 def test_workspace_panel_has_edge_reopen_toggle_outside_hidden_panel():
     assert 'id="btnWorkspacePanelEdgeToggle"' in HTML
     assert 'class="workspace-panel-edge-toggle' in HTML
-    assert 'onclick="toggleWorkspacePanel(true)"' in HTML
+    assert 'data-ui-click="toggleWorkspacePanel(true)"' in HTML
     edge_idx = HTML.index('id="btnWorkspacePanelEdgeToggle"')
     aside_idx = HTML.index('<aside class="rightpanel">')
     assert edge_idx < aside_idx, "reopen control must remain clickable when .rightpanel is collapsed"

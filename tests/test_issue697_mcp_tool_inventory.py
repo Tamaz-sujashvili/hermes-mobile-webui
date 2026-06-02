@@ -108,7 +108,7 @@ class TestMcpToolInventoryUi:
         assert 'data-i18n="mcp_tools_title"' in html
         assert 'id="mcpToolSearch"' in html
         assert 'id="mcpToolList"' in html
-        assert 'oninput="filterMcpTools()"' in html
+        assert 'data-ui-input="filterMcpTools()"' in html
 
     def test_panels_js_loads_tools_and_filters_name_server_description(self):
         js = _read("static/panels.js")

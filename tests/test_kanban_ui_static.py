@@ -27,8 +27,8 @@ def test_kanban_has_native_sidebar_rail_and_mobile_tab():
     # `switchPanel('kanban',{fromRailClick:true})` form. The sidebar-collapse PR
     # added the second-arg opts to all rail buttons so the same-active-icon click
     # can toggle the sidebar; legacy callsites elsewhere may still use the bare form.
-    assert ('onclick="switchPanel(\'kanban\')"' in INDEX
-            or "onclick=\"switchPanel('kanban',{fromRailClick:true})\"" in INDEX), \
+    assert ('data-ui-click="switchPanel(\'kanban\')"' in INDEX
+            or "data-ui-click=\"switchPanel('kanban',{fromRailClick:true})\"" in INDEX), \
         "kanban rail/mobile button must call switchPanel('kanban') (with or without fromRailClick opts)"
     assert 'data-label="Kanban"' in INDEX
     kanban_section = INDEX[INDEX.find('id="mainKanban"'):INDEX.find('id="mainWorkspaces"')]
@@ -110,7 +110,7 @@ def test_kanban_new_task_header_button_opens_modal():
     assert 'id="kanbanNewTaskBtn"' in INDEX
     btn_html = INDEX[INDEX.find('id="kanbanNewTaskBtn"'):]
     btn_html = btn_html[: btn_html.find("</button>") + len("</button>")]
-    assert 'onclick="openKanbanCreate()"' in btn_html, (
+    assert 'data-ui-click="openKanbanCreate()"' in btn_html, (
         "Panel-head '+' button must call openKanbanCreate() (modal), not "
         "createKanbanTask() directly (which silently returns on empty title)."
     )
@@ -132,7 +132,7 @@ def test_kanban_new_task_header_button_opens_modal():
         assert f'id="{field_id}"' in INDEX, f"create-task modal missing #{field_id}"
 
     # 3. Modal closes via Cancel button AND backdrop click AND ESC.
-    assert 'onclick="closeKanbanTaskModal()"' in INDEX
+    assert 'data-ui-click="closeKanbanTaskModal()"' in INDEX
     assert "if(event.target===this)closeKanbanTaskModal()" in INDEX
 
     # 4. openKanbanCreate() unhides the modal, focuses the title field, populates
@@ -466,7 +466,7 @@ def test_kanban_run_dispatcher_button_exists_and_is_distinct_from_preview():
     btn_start = INDEX.rfind('<button', 0, btn_idx)
     btn_end = INDEX.find('</button>', btn_idx) + len('</button>')
     btn_html = INDEX[btn_start:btn_end]
-    assert 'onclick="runKanbanDispatcher()"' in btn_html
+    assert 'data-ui-click="runKanbanDispatcher()"' in btn_html
     # Distinct visual class so users can tell it apart from the preview button.
     assert "kanban-run-dispatch-btn" in btn_html
 
@@ -474,7 +474,7 @@ def test_kanban_run_dispatcher_button_exists_and_is_distinct_from_preview():
     # existing Preview button, so users in the filter pane can also run.
     bulk_idx = INDEX.find("kanbanBulkBar")
     bulk_html = INDEX[bulk_idx:bulk_idx + 1500]
-    assert 'onclick="runKanbanDispatcher()"' in bulk_html, (
+    assert 'data-ui-click="runKanbanDispatcher()"' in bulk_html, (
         "Sidebar bulk bar must also expose Run dispatcher."
     )
     # The dispatch result formatter exists and surfaces concrete numbers.
@@ -684,8 +684,8 @@ def test_kanban_ui_parity_polish_adds_card_metadata_quick_actions_and_swimlanes(
         "kanban-card-id",
         "kanban-card-assignee",
         "draggable=\"true\"",
-        "ondrop=\"dropKanbanTask",
-        "onkeydown=\"if(event.key==='Enter'||event.key===' ')",
+        "data-ui-drop=\"dropKanbanTask",
+        "data-ui-keydown=\"if(event.key==='Enter'||event.key===' ')",
     ):
         assert token in PANELS
     assert "target=\"_blank\" rel=\"noopener noreferrer\"" in PANELS
@@ -731,10 +731,10 @@ def test_kanban_dragging_card_does_not_open_detail_on_drop_click():
     card_template = re.search(r"return `<article class=\"kanban-card.*?</article>`;", PANELS, re.DOTALL)
     assert card_template, "Kanban card template not found"
     card_html = card_template.group(0)
-    assert "ondragend=\"finishKanbanDrag(event)\"" in card_html
-    assert "onclick=\"return openKanbanCard(event," in card_html
-    assert "onclick=\"loadKanbanTask" not in card_html, (
-        "Kanban cards must not call loadKanbanTask directly from onclick; "
+    assert "data-ui-dragend=\"finishKanbanDrag(event)\"" in card_html
+    assert "data-ui-click=\"return openKanbanCard(event," in card_html
+    assert "data-ui-click=\"loadKanbanTask" not in card_html, (
+        "Kanban cards must not call loadKanbanTask directly from click binding; "
         "drag/drop needs a guarded click path"
     )
 

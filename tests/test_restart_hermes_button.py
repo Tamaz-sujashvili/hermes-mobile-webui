@@ -64,7 +64,7 @@ def test_system_pane_has_restart_hermes_button():
     assert 'id="btnRestartHermes"' in html
     assert 'id="btnRestartHermesLabel"' in html
     assert 'id="restartHermesStatus"' in html
-    assert 'onclick="restartHermesStack()"' in html
+    assert 'data-ui-click="restartHermesStack()"' in html
     assert 'Restart the full local Hermes stack' in html
 
 

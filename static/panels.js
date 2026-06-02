@@ -545,9 +545,9 @@ function _renderCronDetail(job){
         <p>${esc(t('cron_attention_desc'))}</p>
         ${croniterHint}
         <div class="detail-alert-actions">
-          <button type="button" class="cron-btn run" onclick="resumeCurrentCron()">${esc(t('cron_attention_resume'))}</button>
-          <button type="button" class="cron-btn" onclick="runCurrentCron()">${esc(t('cron_attention_run_once'))}</button>
-          <button type="button" class="cron-btn" onclick="copyCurrentCronDiagnostics()">${esc(t('cron_attention_copy_diagnostics'))}</button>
+          <button type="button" class="cron-btn run" data-ui-click="resumeCurrentCron()">${esc(t('cron_attention_resume'))}</button>
+          <button type="button" class="cron-btn" data-ui-click="runCurrentCron()">${esc(t('cron_attention_run_once'))}</button>
+          <button type="button" class="cron-btn" data-ui-click="copyCurrentCronDiagnostics()">${esc(t('cron_attention_copy_diagnostics'))}</button>
         </div>
       </div>` : '';
   const toastNotifications = job.toast_notifications !== false;
@@ -573,7 +573,7 @@ function _renderCronDetail(job){
       <div class="detail-card">
         <div class="detail-card-title detail-card-title-row">
           <span>Prompt</span>
-          <button type="button" class="detail-expand-toggle" onclick="toggleCronPromptExpanded('${esc(job.id)}')" title="${esc(promptToggleLabel)}" aria-label="${esc(promptToggleLabel)}">${esc(promptExpanded ? '▴' : '▾')}</button>
+          <button type="button" class="detail-expand-toggle" data-ui-click="toggleCronPromptExpanded('${esc(job.id)}')" title="${esc(promptToggleLabel)}" aria-label="${esc(promptToggleLabel)}">${esc(promptExpanded ? '▴' : '▾')}</button>
         </div>
         <div class="detail-prompt ${promptExpanded ? 'expanded' : ''}">${esc(job.prompt || '')}</div>
       </div>
@@ -638,10 +638,10 @@ async function _loadCronDetailRuns(jobId){
       const runExpanded = _cronExpansionGet(_cronRunExpandKey(jobId, run.filename));
       const runToggleLabel = runExpanded ? (t('cron_collapse_output') || 'Collapse output') : (t('cron_expand_output') || 'Expand output');
       return `<div class="detail-run-item" id="${rid}">
-        <div class="detail-run-head" onclick="_loadRunContent('${esc(jobId)}','${esc(run.filename)}','${rid}')">
+        <div class="detail-run-head" data-ui-click="_loadRunContent('${esc(jobId)}','${esc(run.filename)}','${rid}')">
           <span><span style="opacity:.7">${esc(ts)}</span> <span style="opacity:.4;font-size:11px">${esc(sizeStr)}</span>${usageStrip ? ` <span class="cron-run-usage-strip">${esc(usageStrip)}</span>` : ''}</span>
           <span class="detail-run-actions">
-            <button type="button" class="detail-expand-toggle" onclick="event.stopPropagation();toggleCronRunExpanded('${esc(jobId)}','${esc(run.filename)}','${rid}')" title="${esc(runToggleLabel)}" aria-label="${esc(runToggleLabel)}">${esc(runExpanded ? '▴' : '▾')}</button>
+            <button type="button" class="detail-expand-toggle" data-ui-click="event.stopPropagation();toggleCronRunExpanded('${esc(jobId)}','${esc(run.filename)}','${rid}')" title="${esc(runToggleLabel)}" aria-label="${esc(runToggleLabel)}">${esc(runExpanded ? '▴' : '▾')}</button>
             <span style="opacity:.6">▸</span>
           </span>
         </div>
@@ -843,7 +843,7 @@ function _renderCronForm({ name, schedule, prompt, deliver, profile, toast_notif
   const deliverOpt = (v,l) => `<option value="${v}"${deliver===v?' selected':''}>${esc(l)}</option>`;
   body.innerHTML = `
     <div class="main-view-content">
-      <form class="detail-form" onsubmit="event.preventDefault(); saveCronForm();">
+      <form class="detail-form" data-ui-submit="event.preventDefault(); saveCronForm();">
         <div class="detail-form-row">
           <label for="cronFormName">${esc(t('cron_name_label') || 'Name')}</label>
           <input type="text" id="cronFormName" value="${esc(name || '')}" placeholder="${esc(t('cron_name_placeholder') || 'Optional')}" autocomplete="off">
@@ -1216,7 +1216,7 @@ function _kanbanRenderSidebar(columns){
   }
   list.innerHTML = tasks.map(task => {
     const meta = _kanbanTaskMeta(task);
-    return `<button class="kanban-list-item" onclick="loadKanbanTask('${esc(task.id)}')">
+    return `<button class="kanban-list-item" data-ui-click="loadKanbanTask('${esc(task.id)}')">
       <span class="kanban-list-status">${esc(_kanbanColumnLabel(task.status))}</span>
       <span class="kanban-list-title">${esc(_kanbanTaskTitle(task))}</span>
       ${meta.length ? `<span class="kanban-meta">${esc(meta.join(' · '))}</span>` : ''}
@@ -1265,9 +1265,9 @@ function _kanbanCardStalenessClass(task){
 function _kanbanCardQuickActions(task){
   const id = esc(task.id || '');
   const status = task.status || '';
-  const complete = status !== 'done' && status !== 'archived' ? `<button type="button" class="kanban-card-action" onclick="quickKanbanCardAction(event,'${id}','done')">${esc(t('kanban_card_complete'))}</button>` : '';
-  const archive = status !== 'archived' ? `<button type="button" class="kanban-card-action danger" onclick="quickKanbanCardAction(event,'${id}','archived')">${esc(t('kanban_card_archive'))}</button>` : '';
-  return `<div class="kanban-card-actions" onclick="event.stopPropagation()">${complete}${archive}</div>`;
+  const complete = status !== 'done' && status !== 'archived' ? `<button type="button" class="kanban-card-action" data-ui-click="quickKanbanCardAction(event,'${id}','done')">${esc(t('kanban_card_complete'))}</button>` : '';
+  const archive = status !== 'archived' ? `<button type="button" class="kanban-card-action danger" data-ui-click="quickKanbanCardAction(event,'${id}','archived')">${esc(t('kanban_card_archive'))}</button>` : '';
+  return `<div class="kanban-card-actions" data-ui-click="event.stopPropagation()">${complete}${archive}</div>`;
 }
 
 async function quickKanbanCardAction(event, taskId, status){
@@ -1339,7 +1339,7 @@ function _kanbanLaneNames(columns){
 
 function _kanbanRenderColumn(col){
   const tasks = col.tasks || [];
-  return `<section class="kanban-column" data-status="${esc(col.name)}" data-kanban-status="${esc(col.name)}" ondragover="allowKanbanDrop(event)" ondragenter="event.currentTarget.classList.add('drop-target')" ondragleave="clearKanbanDrop(event)" ondrop="dropKanbanTask(event, '${esc(col.name)}')">
+  return `<section class="kanban-column" data-status="${esc(col.name)}" data-kanban-status="${esc(col.name)}" data-ui-dragover="allowKanbanDrop(event)" data-ui-dragenter="event.currentTarget.classList.add('drop-target')" data-ui-dragleave="clearKanbanDrop(event)" data-ui-drop="dropKanbanTask(event, '${esc(col.name)}')">
       <div class="kanban-column-head">
         <span>${esc(_kanbanColumnLabel(col.name))}</span>
         <span class="kanban-count">${tasks.length}</span>
@@ -1391,7 +1391,7 @@ function _kanbanCard(task, status){
   const stale = _kanbanCardStalenessClass(task);
   const body = _kanbanTaskBody(task);
   const assignee = task.assignee ? `<span class="kanban-card-assignee">@${esc(task.assignee)}</span>` : `<span class="kanban-card-unassigned">${esc(t('kanban_unassigned'))}</span>`;
-  return `<article class="kanban-card ${esc(stale)}" data-kanban-task-id="${esc(task.id)}" draggable="true" ondragstart="dragKanbanTask(event, '${esc(task.id)}')" ondragend="finishKanbanDrag(event)" onclick="return openKanbanCard(event, '${esc(task.id)}')" tabindex="0" role="button" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();loadKanbanTask('${esc(task.id)}')}">
+  return `<article class="kanban-card ${esc(stale)}" data-kanban-task-id="${esc(task.id)}" draggable="true" data-ui-dragstart="dragKanbanTask(event, '${esc(task.id)}')" data-ui-dragend="finishKanbanDrag(event)" data-ui-click="return openKanbanCard(event, '${esc(task.id)}')" tabindex="0" role="button" data-ui-keydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();loadKanbanTask('${esc(task.id)}')}">
     <div class="kanban-card-topline"><span class="kanban-card-id">${esc(task.id || '')}</span>${priority ? `<span class="kanban-badge priority">P${priority}</span>` : ''}${task.tenant ? `<span class="kanban-badge tenant">${esc(task.tenant)}</span>` : ''}</div>
     <div class="kanban-card-title">${esc(_kanbanTaskTitle(task))}</div>
     ${body ? `<div class="kanban-card-body">${_kanbanRenderMarkdown(body)}</div>` : ''}
@@ -1428,7 +1428,7 @@ function _kanbanLooksLikeStaleClientError(err){
 function _kanbanUnavailableHtml(err){
   const raw = String((err && err.message) || err || '');
   if (_kanbanLooksLikeStaleClientError(err)) {
-    return `<div class="main-view-empty"><div class="main-view-empty-title">Kanban needs a hard refresh</div><div class="main-view-empty-subtitle">The server rejected an obsolete Kanban endpoint. This usually means the browser or Mac app is still running a stale cached WebUI bundle after an update.</div><button class="btn primary" type="button" onclick="hardRefreshWebUIClient()">Hard refresh now</button><div class="main-view-empty-subtitle">Original error: ${esc(raw || 'not found')}</div></div>`;
+    return `<div class="main-view-empty"><div class="main-view-empty-title">Kanban needs a hard refresh</div><div class="main-view-empty-subtitle">The server rejected an obsolete Kanban endpoint. This usually means the browser or Mac app is still running a stale cached WebUI bundle after an update.</div><button class="btn primary" type="button" data-ui-click="hardRefreshWebUIClient()">Hard refresh now</button><div class="main-view-empty-subtitle">Original error: ${esc(raw || 'not found')}</div></div>`;
   }
   const msg = `${esc(t('kanban_unavailable'))}: ${esc(raw)}`;
   return `<div class="main-view-empty"><div class="main-view-empty-title">${msg}</div></div>`;
@@ -2347,12 +2347,12 @@ function _kanbanRenderTaskDetail(data){
   // dashboard plugin's contract. UI users want to claim/promote a ready task
   // via the dispatcher Nudge button, not flip it to running by hand.
   const statusButtons = ['triage', 'todo', 'ready', 'blocked', 'done', 'archived'].map(status =>
-    `<button class="btn secondary" onclick="updateKanbanTask('${esc(task.id)}',{status:'${status}'})">${esc(_kanbanColumnLabel(status))}</button>`
-  ).join('') + `<button class="btn secondary" onclick="blockKanbanTask('${esc(task.id)}')">${esc(t('kanban_block'))}</button><button class="btn secondary" onclick="unblockKanbanTask('${esc(task.id)}')">${esc(t('kanban_unblock'))}</button>`;
+    `<button class="btn secondary" data-ui-click="updateKanbanTask('${esc(task.id)}',{status:'${status}'})">${esc(_kanbanColumnLabel(status))}</button>`
+  ).join('') + `<button class="btn secondary" data-ui-click="blockKanbanTask('${esc(task.id)}')">${esc(t('kanban_block'))}</button><button class="btn secondary" data-ui-click="unblockKanbanTask('${esc(task.id)}')">${esc(t('kanban_unblock'))}</button>`;
   return `<div class="kanban-task-preview-header">
-      <button class="btn secondary kanban-back-btn" onclick="closeKanbanTaskDetail()">${esc(t('kanban_back_to_board'))}</button>
+      <button class="btn secondary kanban-back-btn" data-ui-click="closeKanbanTaskDetail()">${esc(t('kanban_back_to_board'))}</button>
       <div class="kanban-task-preview-title">${esc(title)}</div>
-      <button class="btn secondary kanban-edit-btn" onclick="openKanbanEdit('${esc(task.id)}')" data-i18n="kanban_edit_task" title="${esc(t('kanban_edit_task') || 'Edit task')}">${esc(t('kanban_edit_task') || 'Edit task')}</button>
+      <button class="btn secondary kanban-edit-btn" data-ui-click="openKanbanEdit('${esc(task.id)}')" data-i18n="kanban_edit_task" title="${esc(t('kanban_edit_task') || 'Edit task')}">${esc(t('kanban_edit_task') || 'Edit task')}</button>
     </div>
     <div class="kanban-task-preview-body">${esc(body)}</div>
     ${meta.length ? `<div class="kanban-meta">${esc(meta.join(' · '))}</div>` : ''}
@@ -2366,7 +2366,7 @@ function _kanbanRenderTaskDetail(data){
     </div>
     <div class="kanban-comment-form">
       <textarea id="kanbanCommentInput" rows="2" placeholder="${esc(t('kanban_add_comment'))}"></textarea>
-      <button class="btn primary" onclick="addKanbanComment('${esc(task.id)}')">${esc(t('kanban_add_comment'))}</button>
+      <button class="btn primary" data-ui-click="addKanbanComment('${esc(task.id)}')">${esc(t('kanban_add_comment'))}</button>
     </div>`;
 }
 
@@ -2521,7 +2521,7 @@ function _renderKanbanBoardMenu(boards, current){
     const icon = b.icon ? esc(b.icon) : '';
     const safeColor = _kanbanSafeColor(b.color);
     const colorStyle = safeColor ? `color:${safeColor}` : '';
-    return `<button type="button" class="kanban-board-switcher-item ${isCurrent ? 'is-current' : ''}" role="menuitem" data-board-slug="${esc(b.slug)}" onclick="switchKanbanBoard('${esc(b.slug)}')">
+    return `<button type="button" class="kanban-board-switcher-item ${isCurrent ? 'is-current' : ''}" role="menuitem" data-board-slug="${esc(b.slug)}" data-ui-click="switchKanbanBoard('${esc(b.slug)}')">
       <span class="kanban-board-switcher-item-icon" style="${colorStyle}">${icon || (isCurrent ? '✓' : '')}</span>
       <span class="kanban-board-switcher-item-name">${esc(b.name || b.slug)}</span>
       <span class="kanban-board-switcher-item-count">${esc(String(total))}</span>
@@ -2534,15 +2534,15 @@ function _renderKanbanBoardMenu(boards, current){
   const archiveDisabled = current === 'default';
   const actions = `
     <div class="kanban-board-switcher-divider" role="separator"></div>
-    <button type="button" class="kanban-board-switcher-action" onclick="openKanbanCreateBoard()" data-i18n="kanban_new_board">
+    <button type="button" class="kanban-board-switcher-action" data-ui-click="openKanbanCreateBoard()" data-i18n="kanban_new_board">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       <span>${esc(t('kanban_new_board') || 'New board…')}</span>
     </button>
-    <button type="button" class="kanban-board-switcher-action" onclick="openKanbanRenameBoard()" ${renameDisabled ? 'disabled' : ''} data-i18n="kanban_rename_board">
+    <button type="button" class="kanban-board-switcher-action" data-ui-click="openKanbanRenameBoard()" ${renameDisabled ? 'disabled' : ''} data-i18n="kanban_rename_board">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
       <span>${esc(t('kanban_rename_board') || 'Rename current board…')}</span>
     </button>
-    <button type="button" class="kanban-board-switcher-action danger" onclick="archiveKanbanBoard()" ${archiveDisabled ? 'disabled' : ''} data-i18n="kanban_archive_board">
+    <button type="button" class="kanban-board-switcher-action danger" data-ui-click="archiveKanbanBoard()" ${archiveDisabled ? 'disabled' : ''} data-i18n="kanban_archive_board">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
       <span>${esc(t('kanban_archive_board') || 'Archive current board…')}</span>
     </button>
@@ -3482,7 +3482,7 @@ function _renderSkillForm({ name, category, content, isEdit }) {
   const nameHint = isEdit ? `<div class="detail-form-hint">${esc(t('skill_rename_not_supported') || 'Renaming a skill is not supported. Create a new skill and delete the old one to rename.')}</div>` : '';
   body.innerHTML = `
     <div class="main-view-content">
-      <form class="detail-form" onsubmit="event.preventDefault(); saveSkillForm();">
+      <form class="detail-form" data-ui-submit="event.preventDefault(); saveSkillForm();">
         <div class="detail-form-row">
           <label for="skillFormName">${esc(t('skill_name') || 'Name')}</label>
           <input type="text" id="skillFormName" value="${esc(name || '')}" placeholder="my-skill" autocomplete="off" ${nameDisabled} required>
@@ -3668,7 +3668,7 @@ function _renderMemoryEdit(section) {
   const content = _memorySectionContent(section);
   body.innerHTML = `
     <div class="main-view-content">
-      <form class="detail-form" onsubmit="event.preventDefault(); submitMemorySave();">
+      <form class="detail-form" data-ui-submit="event.preventDefault(); submitMemorySave();">
         <div class="detail-form-row">
           <label for="memEditContent">${esc(t('memory_notes_label'))}</label>
           <textarea id="memEditContent" rows="20" spellcheck="false">${esc(content)}</textarea>
@@ -4280,7 +4280,7 @@ function _renderWorkspaceForm({ name, path, isEdit }){
     : `<div class="detail-form-hint">${esc(t('workspace_paths_validated_hint'))}</div>`;
   body.innerHTML = `
     <div class="main-view-content">
-      <form class="detail-form" onsubmit="event.preventDefault(); saveWorkspaceForm();">
+      <form class="detail-form" data-ui-submit="event.preventDefault(); saveWorkspaceForm();">
         <div class="detail-form-row">
           <label for="workspaceFormName">${esc(t('workspace_name_label') || 'Name')}</label>
           <input type="text" id="workspaceFormName" value="${esc(name || '')}" placeholder="${esc(t('workspace_name_placeholder') || 'Optional friendly name')}" autocomplete="off">
@@ -4937,7 +4937,7 @@ function _renderProfileForm(){
   title.textContent = t('new_profile');
   body.innerHTML = `
     <div class="main-view-content">
-      <form class="detail-form" onsubmit="event.preventDefault(); saveProfileForm();">
+      <form class="detail-form" data-ui-submit="event.preventDefault(); saveProfileForm();">
         <div class="detail-form-row">
           <label for="profileFormName">${esc(t('profile_name_label') || 'Name')}</label>
           <input type="text" id="profileFormName" placeholder="${esc(t('profile_name_placeholder') || 'lowercase, a-z 0-9 hyphens')}" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" required>
@@ -5307,8 +5307,8 @@ function _showSettingsUnsavedBar(){
   bar.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(233,69,96,.12);border:1px solid rgba(233,69,96,.3);border-radius:8px;padding:10px 14px;margin:0 0 12px;font-size:13px;';
   bar.innerHTML = `<span style="color:var(--text)">${esc(t('settings_unsaved_changes'))}</span>`
     + '<span style="display:flex;gap:8px">'
-    + `<button onclick="_discardSettings()" style="padding:5px 12px;border-radius:6px;border:1px solid var(--border2);background:rgba(255,255,255,.06);color:var(--muted);cursor:pointer;font-size:12px;font-weight:600">${esc(t('discard'))}</button>`
-    + `<button onclick="saveSettings(true)" style="padding:5px 12px;border-radius:6px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-size:12px;font-weight:600">${esc(t('save'))}</button>`
+    + `<button data-ui-click="_discardSettings()" style="padding:5px 12px;border-radius:6px;border:1px solid var(--border2);background:rgba(255,255,255,.06);color:var(--muted);cursor:pointer;font-size:12px;font-weight:600">${esc(t('discard'))}</button>`
+    + `<button data-ui-click="saveSettings(true)" style="padding:5px 12px;border-radius:6px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-size:12px;font-weight:600">${esc(t('save'))}</button>`
     + '</span>';
   const body = document.querySelector('#mainSettings .settings-main') || document.querySelector('.settings-main');
   if(body) body.prepend(bar);
@@ -5359,7 +5359,7 @@ function _setAppearanceAutosaveStatus(state){
   }else if(state==='saved'){
     el.textContent=t('settings_autosave_saved');
   }else if(state==='failed'){
-    el.innerHTML=`<span>${esc(t('settings_autosave_failed'))}</span> <button type="button" onclick="_retryAppearanceAutosave()">${esc(t('settings_autosave_retry'))}</button>`;
+    el.innerHTML=`<span>${esc(t('settings_autosave_failed'))}</span> <button type="button" data-ui-click="_retryAppearanceAutosave()">${esc(t('settings_autosave_retry'))}</button>`;
   }
 }
 
@@ -5468,7 +5468,7 @@ function _setPreferencesAutosaveStatus(state){
   }else if(state==='saved'){
     el.textContent=t('settings_autosave_saved');
   }else if(state==='failed'){
-    el.innerHTML=`<span>${esc(t('settings_autosave_failed'))}</span> <button type=\"button\" onclick=\"_retryPreferencesAutosave()\">${esc(t('settings_autosave_retry'))}</button>`;
+    el.innerHTML=`<span>${esc(t('settings_autosave_failed'))}</span> <button type=\"button\" data-ui-click=\"_retryPreferencesAutosave()\">${esc(t('settings_autosave_retry'))}</button>`;
   }
 }
 
@@ -6832,7 +6832,7 @@ function showErrorBanner(){
   if(!latest){banner.style.display='none';return;}
   const count=_backgroundErrors.length;
   const msg=count>1?t('bg_error_multi',count):t('bg_error_single',latest.title);
-  banner.innerHTML=`<span>\u26a0 ${esc(msg)}</span><div style="display:flex;gap:6px;flex-shrink:0"><button class="reconnect-btn" onclick="navigateToErrorSession()">${esc(t('view'))}</button><button class="reconnect-btn" onclick="dismissErrorBanner()">${esc(t('dismiss'))}</button></div>`;
+  banner.innerHTML=`<span>\u26a0 ${esc(msg)}</span><div style="display:flex;gap:6px;flex-shrink:0"><button class="reconnect-btn" data-ui-click="navigateToErrorSession()">${esc(t('view'))}</button><button class="reconnect-btn" data-ui-click="dismissErrorBanner()">${esc(t('dismiss'))}</button></div>`;
   banner.style.display='';
 }
 
@@ -6936,7 +6936,7 @@ function _mcpToolsSummary(total, filtered, page, pages, query){
 }
 function _mcpToolPageSizeControl(){
   const options=MCP_TOOLS_PAGE_SIZE_OPTIONS.map(size=>`<option value="${size}" ${size===_mcpToolsPageSize?'selected':''}>${size}</option>`).join('');
-  return `<label class="mcp-tool-page-size">${esc(t('mcp_tools_page_size_prefix'))} <select aria-label="${esc(t('mcp_tools_per_page_aria'))}" onchange="setMcpToolsPageSize(this.value)">${options}</select> ${esc(t('mcp_tools_page_size_suffix'))}</label>`;
+  return `<label class="mcp-tool-page-size">${esc(t('mcp_tools_page_size_prefix'))} <select aria-label="${esc(t('mcp_tools_per_page_aria'))}" data-ui-change="setMcpToolsPageSize(this.value)">${options}</select> ${esc(t('mcp_tools_page_size_suffix'))}</label>`;
 }
 function _mcpToolsEmptyMessage(query){
   const base=esc(t(query?'mcp_tools_no_matches':'mcp_tools_no_tools'));
@@ -6951,9 +6951,9 @@ function _renderMcpToolPager(filteredCount, page, pages){
     pager.innerHTML='';
     return;
   }
-  pager.innerHTML=`<button type="button" class="mcp-tool-page-btn" onclick="setMcpToolsPage(${page-1})" ${page<=1?'disabled':''} aria-label="${esc(t('mcp_tools_previous_page_aria'))}">${esc(t('mcp_tools_previous_page'))}</button>
+  pager.innerHTML=`<button type="button" class="mcp-tool-page-btn" data-ui-click="setMcpToolsPage(${page-1})" ${page<=1?'disabled':''} aria-label="${esc(t('mcp_tools_previous_page_aria'))}">${esc(t('mcp_tools_previous_page'))}</button>
     <span class="mcp-tool-page-label">${page} / ${pages}</span>
-    <button type="button" class="mcp-tool-page-btn" onclick="setMcpToolsPage(${page+1})" ${page>=pages?'disabled':''} aria-label="${esc(t('mcp_tools_next_page_aria'))}">${esc(t('mcp_tools_next_page'))}</button>`;
+    <button type="button" class="mcp-tool-page-btn" data-ui-click="setMcpToolsPage(${page+1})" ${page>=pages?'disabled':''} aria-label="${esc(t('mcp_tools_next_page_aria'))}">${esc(t('mcp_tools_next_page'))}</button>`;
 }
 function _renderMcpTools(tools, query){
   const list=$('mcpToolList');
@@ -7086,10 +7086,10 @@ async function _loadCheckpoints(workspace){
             </div>
           </div>
           <div style="display:flex;gap:4px;flex-shrink:0;margin-left:8px">
-            <button class="panel-head-btn" title="${esc(t('checkpoint_view_diff'))}" onclick="event.stopPropagation();_viewCheckpointDiff('${esc(workspace)}','${esc(ck.id)}')">
+            <button class="panel-head-btn" title="${esc(t('checkpoint_view_diff'))}" data-ui-click="event.stopPropagation();_viewCheckpointDiff('${esc(workspace)}','${esc(ck.id)}')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
             </button>
-            <button class="panel-head-btn" title="${esc(t('checkpoint_restore'))}" onclick="event.stopPropagation();_restoreCheckpoint('${esc(workspace)}','${esc(ck.id)}','${esc(msg.replace(/'/g,"\\'"))}')">
+            <button class="panel-head-btn" title="${esc(t('checkpoint_restore'))}" data-ui-click="event.stopPropagation();_restoreCheckpoint('${esc(workspace)}','${esc(ck.id)}','${esc(msg.replace(/'/g,"\\'"))}')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
             </button>
           </div>
@@ -7111,7 +7111,7 @@ async function _viewCheckpointDiff(workspace,checkpoint){
       <div style="background:var(--bg,${getComputedStyle(document.documentElement).getPropertyValue('--bg')||'#1a1a2e'});border:1px solid var(--border,rgba(255,255,255,0.12));border-radius:12px;width:90vw;max-width:800px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,0.4)">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border,rgba(255,255,255,0.08))">
           <div id="checkpointDiffModalTitle" style="font-weight:600;font-size:14px"></div>
-          <button onclick="document.getElementById('checkpointDiffModal').style.display='none'" style="background:none;border:none;color:var(--fg);cursor:pointer;font-size:18px;padding:0 4px">&times;</button>
+          <button data-ui-click="document.getElementById('checkpointDiffModal').style.display='none'" style="background:none;border:none;color:var(--fg);cursor:pointer;font-size:18px;padding:0 4px">&times;</button>
         </div>
         <div id="checkpointDiffModalBody" style="flex:1;overflow:auto;padding:12px 16px">
           <div style="color:var(--muted);font-size:12px">${esc(t('checkpoint_loading'))}</div>

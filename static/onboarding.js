@@ -182,7 +182,7 @@ function _renderOnboardingBaseUrlField(showBaseUrl){
   }
   const testBtnLabel=t('onboarding_probe_test_button')||'Test connection';
   const testBtnDisabled=(probe.status==='probing')?'disabled':'';
-  return `<label class="onboarding-field"><span>${t('onboarding_base_url_label')}</span><input id="onboardingBaseUrlInput" value="${esc(ONBOARDING.form.baseUrl||'')}" placeholder="${t('onboarding_base_url_placeholder')}" oninput="ONBOARDING.form.baseUrl=this.value;_scheduleOnboardingProbe()" onblur="_runOnboardingProbe()"></label><div class="onboarding-probe-row"><button type="button" class="onboarding-probe-btn" ${testBtnDisabled} onclick="_runOnboardingProbe({force:true})">${esc(testBtnLabel)}</button></div>${banner}`;
+  return `<label class="onboarding-field"><span>${t('onboarding_base_url_label')}</span><input id="onboardingBaseUrlInput" value="${esc(ONBOARDING.form.baseUrl||'')}" placeholder="${t('onboarding_base_url_placeholder')}" data-ui-input="ONBOARDING.form.baseUrl=this.value;_scheduleOnboardingProbe()" data-ui-blur="_runOnboardingProbe()"></label><div class="onboarding-probe-row"><button type="button" class="onboarding-probe-btn" ${testBtnDisabled} data-ui-click="_runOnboardingProbe({force:true})">${esc(testBtnLabel)}</button></div>${banner}`;
 }
 
 function _renderOnboardingApiKeyField(){
@@ -197,7 +197,7 @@ function _renderOnboardingApiKeyField(){
   const labelKey=keyOptional?'onboarding_api_key_label_optional':'onboarding_api_key_label';
   const placeholderKey=keyOptional?'onboarding_api_key_placeholder_optional':'onboarding_api_key_placeholder';
   const helpHtml=keyOptional?`<p class="onboarding-copy onboarding-api-key-help">${esc(t('onboarding_api_key_help_keyless')||'')}</p>`:'';
-  return `<label class="onboarding-field" id="onboardingApiKeyField"><span>${t(labelKey)}</span><input id="onboardingApiKeyInput" type="password" value="${esc(ONBOARDING.form.apiKey||'')}" placeholder="${t(placeholderKey)}" oninput="ONBOARDING.form.apiKey=this.value" onblur="_runOnboardingProbe()"></label>${helpHtml}`;
+  return `<label class="onboarding-field" id="onboardingApiKeyField"><span>${t(labelKey)}</span><input id="onboardingApiKeyInput" type="password" value="${esc(ONBOARDING.form.apiKey||'')}" placeholder="${t(placeholderKey)}" data-ui-input="ONBOARDING.form.apiKey=this.value" data-ui-blur="_runOnboardingProbe()"></label>${helpHtml}`;
 }
 
 function _getOnboardingSelectedModel(){
@@ -207,10 +207,10 @@ function _getOnboardingSelectedModel(){
 function _renderOnboardingModelField(){
   const choices=_getOnboardingProviderModelChoices();
   if(ONBOARDING.form.provider==='custom'){
-    return `<label class="onboarding-field"><span>${t('onboarding_model_label')}</span><input id="onboardingModelInput" value="${esc(_getOnboardingSelectedModel())}" placeholder="${t('onboarding_custom_model_placeholder')}" oninput="ONBOARDING.form.model=this.value"></label><p class="onboarding-copy">${t('onboarding_custom_model_help')}</p>`;
+    return `<label class="onboarding-field"><span>${t('onboarding_model_label')}</span><input id="onboardingModelInput" value="${esc(_getOnboardingSelectedModel())}" placeholder="${t('onboarding_custom_model_placeholder')}" data-ui-input="ONBOARDING.form.model=this.value"></label><p class="onboarding-copy">${t('onboarding_custom_model_help')}</p>`;
   }
   const options=choices.map(m=>`<option value="${esc(m.id)}">${esc(m.label)}</option>`).join('');
-  return `<label class="onboarding-field"><span>${t('onboarding_model_label')}</span><select id="onboardingModelSelect" onchange="ONBOARDING.form.model=this.value">${options}</select></label><p class="onboarding-copy">${t('onboarding_workspace_help')}</p>`;
+  return `<label class="onboarding-field"><span>${t('onboarding_model_label')}</span><select id="onboardingModelSelect" data-ui-change="ONBOARDING.form.model=this.value">${options}</select></label><p class="onboarding-copy">${t('onboarding_workspace_help')}</p>`;
 }
 
 function _renderOnboardingProviderOAuthField(provider){
@@ -220,7 +220,7 @@ function _renderOnboardingProviderOAuthField(provider){
     <div style="flex:1">
       <strong>Use Claude Code OAuth instead</strong>
       <p style="margin-top:6px;color:var(--muted);font-size:13px"><strong>Claude Code subscription credentials are not the same as an Anthropic API key.</strong> Use this path only when you want Hermes to use Claude Code credentials already available on the server, or start a short polling flow while you complete <code>claude setup-token</code> on the host.</p>
-      <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="sm-btn" id="anthropicOAuthBtn" onclick="startAnthropicOAuth()" type="button">Login with Claude Code</button></div>
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="sm-btn" id="anthropicOAuthBtn" data-ui-click="startAnthropicOAuth()" type="button">Login with Claude Code</button></div>
       <div id="anthropicOAuthFlow" style="display:none;margin-top:12px"></div>
     </div>
   </div>`;
@@ -298,7 +298,7 @@ function _renderOnboardingBody(){
           <p class="onboarding-copy" style="margin-top:20px">${t('onboarding_oauth_switch_hint')}</p>
           <label class="onboarding-field">
             <span>${t('onboarding_provider_label')}</span>
-            <select id="onboardingProviderSelect" onchange="syncOnboardingProvider(this.value)">${groupedOptions}</select>
+            <select id="onboardingProviderSelect" data-ui-change="syncOnboardingProvider(this.value)">${groupedOptions}</select>
           </label>
           ${_renderOnboardingApiKeyField()}
           ${_renderOnboardingBaseUrlField(showBaseUrl)}
@@ -311,13 +311,13 @@ function _renderOnboardingBody(){
             <div style="flex:1">
               <strong>${t('onboarding_oauth_provider_not_ready_title')}</strong>
               <p>${codexOauthPendingBody}</p>
-              ${currentProviderName==='openai-codex'?`<div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="sm-btn" id="codexOAuthBtn" onclick="startCodexOAuth()" type="button">${t('oauth_login_codex')}</button></div><div id="codexOAuthFlow" style="display:none;margin-top:12px"></div>`:''}
+              ${currentProviderName==='openai-codex'?`<div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="sm-btn" id="codexOAuthBtn" data-ui-click="startCodexOAuth()" type="button">${t('oauth_login_codex')}</button></div><div id="codexOAuthFlow" style="display:none;margin-top:12px"></div>`:''}
             </div>
           </div>
           <p class="onboarding-copy" style="margin-top:20px">${t('onboarding_oauth_switch_hint')}</p>
           <label class="onboarding-field">
             <span>${t('onboarding_provider_label')}</span>
-            <select id="onboardingProviderSelect" onchange="syncOnboardingProvider(this.value)">${groupedOptions}</select>
+            <select id="onboardingProviderSelect" data-ui-change="syncOnboardingProvider(this.value)">${groupedOptions}</select>
           </label>
           ${_renderOnboardingApiKeyField()}
           ${_renderOnboardingBaseUrlField(showBaseUrl)}
@@ -330,7 +330,7 @@ function _renderOnboardingBody(){
     body.innerHTML=`
       <label class="onboarding-field">
         <span>${t('onboarding_provider_label')}</span>
-        <select id="onboardingProviderSelect" onchange="syncOnboardingProvider(this.value)">${groupedOptions}</select>
+        <select id="onboardingProviderSelect" data-ui-change="syncOnboardingProvider(this.value)">${groupedOptions}</select>
       </label>
       ${_renderOnboardingApiKeyField()}
       ${_renderOnboardingProviderOAuthField(provider)}
@@ -347,11 +347,11 @@ function _renderOnboardingBody(){
     body.innerHTML=`
       <label class="onboarding-field">
         <span>${t('onboarding_workspace_label')}</span>
-        <select id="onboardingWorkspaceSelect" onchange="syncOnboardingWorkspaceSelect(this.value)">${workspaceOptions}</select>
+        <select id="onboardingWorkspaceSelect" data-ui-change="syncOnboardingWorkspaceSelect(this.value)">${workspaceOptions}</select>
       </label>
       <label class="onboarding-field">
         <span>${t('onboarding_workspace_or_path')}</span>
-        <input id="onboardingWorkspaceInput" value="${esc(ONBOARDING.form.workspace||'')}" placeholder="${t('onboarding_workspace_placeholder')}" oninput="ONBOARDING.form.workspace=this.value">
+        <input id="onboardingWorkspaceInput" value="${esc(ONBOARDING.form.workspace||'')}" placeholder="${t('onboarding_workspace_placeholder')}" data-ui-input="ONBOARDING.form.workspace=this.value">
       </label>
       ${_renderOnboardingModelField()}`;
     const wsSel=$('onboardingWorkspaceSelect');
@@ -366,7 +366,7 @@ function _renderOnboardingBody(){
     body.innerHTML=`
       <label class="onboarding-field">
         <span>${t('onboarding_password_label')}</span>
-        <input id="onboardingPasswordInput" type="password" value="${esc(ONBOARDING.form.password||'')}" placeholder="${t('onboarding_password_placeholder')}" oninput="ONBOARDING.form.password=this.value">
+        <input id="onboardingPasswordInput" type="password" value="${esc(ONBOARDING.form.password||'')}" placeholder="${t('onboarding_password_placeholder')}" data-ui-input="ONBOARDING.form.password=this.value">
       </label>
       <p class="onboarding-copy">${t('onboarding_password_help')}</p>`;
     return;
@@ -666,8 +666,8 @@ async function startCodexOAuth(){
           <p style="margin-top:8px"><strong>${t('oauth_codex_step2')}</strong></p>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
             <code style="display:inline-block;font-size:18px;letter-spacing:0.1em;background:rgba(255,255,255,.08);padding:6px 14px;border-radius:8px;user-select:all">${esc(user_code)}</code>
-            <button class="sm-btn" type="button" onclick="copyCodexOAuthCode('${esc(user_code)}')">Copy code</button>
-            <button class="sm-btn" type="button" onclick="cancelCodexOAuth()">Cancel</button>
+            <button class="sm-btn" type="button" data-ui-click="copyCodexOAuthCode('${esc(user_code)}')">Copy code</button>
+            <button class="sm-btn" type="button" data-ui-click="cancelCodexOAuth()">Cancel</button>
           </div>
           <p style="margin-top:8px;color:var(--muted);font-size:13px">${t('oauth_codex_polling')}</p>
         </div>
@@ -785,7 +785,7 @@ async function startAnthropicOAuth(){
           <p style="margin-top:6px">${esc(action_required||"Run 'claude setup-token' on the server, then return here. Hermes will detect the credential automatically.")}</p>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px">
             <code style="display:inline-block;background:rgba(255,255,255,.08);padding:6px 10px;border-radius:8px;user-select:all">claude setup-token</code>
-            <button class="sm-btn" type="button" onclick="cancelAnthropicOAuth()">Cancel</button>
+            <button class="sm-btn" type="button" data-ui-click="cancelAnthropicOAuth()">Cancel</button>
           </div>
           <p style="margin-top:8px;color:var(--muted);font-size:13px">Waiting for Claude Code credentials...</p>
         </div>

@@ -117,11 +117,11 @@ def test_terminal_collapsed_state_preserves_pty_and_output_surface():
     terminal_js = _read("static/terminal.js")
 
     assert 'id="btnTerminalCollapse"' in html
-    assert 'onclick="collapseComposerTerminal()"' in html
+    assert 'data-ui-click="collapseComposerTerminal()"' in html
     assert 'id="btnTerminalExpand"' in html
-    assert 'onclick="expandComposerTerminal()"' in html
+    assert 'data-ui-click="expandComposerTerminal()"' in html
     assert 'id="btnTerminalDockClose"' in html
-    assert 'onclick="closeComposerTerminal()"' in html
+    assert 'data-ui-click="closeComposerTerminal()"' in html
     assert "collapsed:false" in terminal_js
     collapse_block = terminal_js.split("function collapseComposerTerminal", 1)[1].split("function expandComposerTerminal", 1)[0]
     assert "api('/api/terminal/close'" not in collapse_block

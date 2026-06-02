@@ -65,7 +65,7 @@ def test_status_card_renderer_escapes_all_dynamic_values_and_is_copyable():
     body = _function_body(UI_JS, "_statusCardHtml")
     assert "data-status-card" in body
     assert "data-copy-status-session" in body
-    assert "onclick=\"copyStatusSessionId(this);event.stopPropagation()\"" in body
+    assert "data-ui-click=\"copyStatusSessionId(this);event.stopPropagation()\"" in body
     assert "esc(card.title" in body
     assert "esc(card.subtitle" in body
     assert "esc(row.label" in body

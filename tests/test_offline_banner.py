@@ -17,7 +17,7 @@ def test_offline_banner_markup_styles_and_copy_exist():
     assert 'id="offlineBanner"' in INDEX_HTML
     assert 'role="status"' in INDEX_HTML
     assert 'aria-live="assertive"' in INDEX_HTML
-    assert 'onclick="checkOfflineRecoveryNow()"' in INDEX_HTML
+    assert 'data-ui-click="checkOfflineRecoveryNow()"' in INDEX_HTML
     assert ".offline-banner" in STYLE_CSS
     assert ".offline-banner.visible" in STYLE_CSS
     assert ".offline-action[disabled]" in STYLE_CSS

@@ -44,7 +44,7 @@ def test_dashboard_frontend_opens_external_tab_safely_and_derives_browser_host_u
     assert "window.location.hostname" in UI_JS
     assert "_dashboardBrowserUrl" in UI_JS
     assert 'id="dashboardRailBtn"' in INDEX_HTML
-    assert re.search(r'id="dashboardRailBtn"[^>]*onclick="openHermesDashboard\(event\)"', INDEX_HTML)
+    assert re.search(r'id="dashboardRailBtn"[^>]*data-ui-click="openHermesDashboard\(event\)"', INDEX_HTML)
 
 
 def test_dashboard_loopback_warning_and_external_badge_are_present():

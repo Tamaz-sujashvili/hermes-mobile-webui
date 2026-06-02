@@ -40,8 +40,9 @@ def test_handler_adds_enforced_content_security_policy(monkeypatch):
 def test_csp_policy_keeps_legacy_inline_allowances_for_current_ui():
     policy = Handler.csp_policy()
 
-    assert "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://static.cloudflareinsights.com" in policy
+    assert "script-src 'self' https://cdn.jsdelivr.net https://static.cloudflareinsights.com" in policy
     assert "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com" in policy
+    assert "script-src 'self' 'unsafe-inline'" not in policy
     # unsafe-eval was dropped after Opus stage-339 verification — no production
     # JS uses eval(), new Function(), or string-form setTimeout/setInterval.
     assert "'unsafe-eval'" not in policy

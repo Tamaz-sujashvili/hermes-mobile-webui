@@ -208,7 +208,7 @@ class Handler(BaseHTTPRequestHandler):
         "form-action 'self'; "
         "object-src 'none'; "
         "frame-ancestors 'self'; "
-        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; "
+        "script-src 'self' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; "
         "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; "
         "img-src 'self' data: https: blob:; "
         "font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; "

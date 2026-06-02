@@ -161,8 +161,8 @@ class TestYoloPillHTML:
     def test_yolo_pill_element_exists(self, index_html):
         assert 'id="yoloPill"' in index_html
 
-    def test_yolo_pill_has_onclick(self, index_html):
-        assert 'onclick="cmdYolo()"' in index_html
+    def test_yolo_pill_has_click_binding(self, index_html):
+        assert 'data-ui-click="cmdYolo()"' in index_html
 
     def test_yolo_pill_hidden_by_default(self, index_html):
         pill_match = re.search(r'<button[^>]*id="yoloPill"[^>]*>', index_html)

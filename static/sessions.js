@@ -1030,7 +1030,7 @@ function _showHandoffHint(sid, rounds) {
     </div>
     <div class="handoff-hint-actions">
       <button class="handoff-hint-action" type="button">View summary</button>
-      <button class="handoff-hint-dismiss" type="button" onclick="event.stopPropagation(); _dismissHandoffHint('${esc(sid)}')" title="Dismiss">
+      <button class="handoff-hint-dismiss" type="button" data-ui-click="event.stopPropagation(); _dismissHandoffHint('${esc(sid)}')" title="Dismiss">
         Close
       </button>
     </div>

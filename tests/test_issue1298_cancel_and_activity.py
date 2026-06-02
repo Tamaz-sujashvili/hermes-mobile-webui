@@ -353,7 +353,7 @@ class TestIssue1298ActivityGroupExpandPersistence:
         # captured into _liveActivityUserExpanded.
         m = re.search(r'class="tool-call-group-summary"[^`]*`', src)
         assert m, "live activity summary button template must be present"
-        assert "onclick=\"_toggleActivityGroup(this)\"" in m.group(0), (
+        assert "data-ui-click=\"_toggleActivityGroup(this)\"" in m.group(0), (
             "ensureActivityGroup() summary button should use the shared toggle helper"
         )
         toggle_body = re.search(
