@@ -1,0 +1,53 @@
+---
+description: Hermes Mobile WebUI project rules, contribution style, and Obsidian vault integration
+alwaysApply: true
+---
+
+# Hermes Mobile WebUI
+
+## Read first
+
+Before making changes, read:
+1. `README.md`
+2. `CONTRIBUTING.md`
+3. `docs/CONTRACTS.md`
+4. `CHANGELOG.md`
+
+For architecture/testing/setup, also read `ARCHITECTURE.md`, `TESTING.md`, `docs/onboarding.md`, `docs/troubleshooting.md`.
+For UI/UX work, read `docs/UIUX-GUIDE.md` and `DESIGN.md` first.
+
+## Contribution style
+
+- One logical change per PR; split unrelated refactors.
+- Prefer existing Python + vanilla JavaScript structure.
+- Update `CHANGELOG.md` for user-visible changes.
+- For UI/UX changes, include before/after evidence and test mobile states.
+
+## Local state safety
+
+Prefer isolated trial state:
+
+```bash
+HERMES_HOME=/tmp/hermes-webui-agent-home \
+HERMES_WEBUI_STATE_DIR=/tmp/hermes-webui-agent-state \
+HERMES_WEBUI_PORT=8789 \
+python3 bootstrap.py
+```
+
+Do not delete or overwrite `~/.hermes` without explicit approval.
+
+# Obsidian Knowledge Vault
+
+Location: /Users/tazo/Documents/MyProject_Vault/
+
+## At session start
+
+1. Read /Users/tazo/Documents/MyProject_Vault/home/index.md.md for overview and active work
+2. When a task mentions a bug or decision -- find the relevant note in /Users/tazo/Documents/MyProject_Vault/knowledge/
+
+## When I say "save session"
+
+1. Create /Users/tazo/Documents/MyProject_Vault/sessions/YYYY-MM-DD.md with a detailed summary.
+2. Append [[sessions/YYYY-MM-DD]] to /Users/tazo/Documents/MyProject_Vault/home/index.md.md under "## Sessions".
+3. Save decisions to knowledge/decisions/ and bugs to knowledge/debugging/.
+4. All internal links MUST use [[wiki-link]] format.

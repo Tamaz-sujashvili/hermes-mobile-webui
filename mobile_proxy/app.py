@@ -293,7 +293,7 @@ async def login_submit(password: str = Form(...), next: str = Form("/")):
         session,
         max_age=SETTINGS.session_ttl,
         httponly=True,
-        secure=True,
+        secure=False,
         samesite="lax",
         path="/",
     )
