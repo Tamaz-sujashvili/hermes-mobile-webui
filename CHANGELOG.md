@@ -5,6 +5,8 @@
 
 ### Fixed
 
+- **Hermes.app bootstrap 404:** `scripts/repair_hermes_desktop.sh` seeds `~/.hermes/bootstrap-cache/` with `install.sh` for the commit baked inside `app.asar`, preventing GitHub 404 when the app was built from a dirty/unpushed checkout.
+- **Hermes.app backend timeout:** `scripts/launch_hermes_app.sh` sets `HERMES_DESKTOP_WEB_DIST` via `launchctl setenv` so the Python dashboard finds on-disk web assets instead of the unreadable `app.asar/dist` path.
 - WebUI compression snapshot preservation now keeps the archived session's pre-turn `model`, `model_provider`, and `workspace` metadata instead of overwriting the old sidecar with the continuation turn's routing. This fixes sessions that appeared to change provider/model after compression or restart, especially when a chat switched models right before an automatic continuation.
 
 
