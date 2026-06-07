@@ -84,11 +84,11 @@ set -euo pipefail
 export HERMES_HOME="${HERMES_HOME}"
 export HERMES_MOBILE_RUNTIME_DIR="${RUNTIME_DIR}"
 export HERMES_MOBILE_AUTH_PATH="${RUNTIME_DIR}/auth.json"
-export HERMES_MOBILE_UPSTREAM="http://127.0.0.1:9119"
+export HERMES_MOBILE_UPSTREAM="http://127.0.0.1:8787"
 export HERMES_MOBILE_PROXY_PORT="9200"
 export PATH="${HERMES_HOME}/hermes-agent/venv/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 cd "${REPO_ROOT}"
-exec "${REPO_ROOT}/.venv/bin/python" -m uvicorn mobile_proxy.app:APP --host 127.0.0.1 --port 9200
+exec "${REPO_ROOT}/.venv/bin/python" -m uvicorn mobile_proxy.app:APP --host 0.0.0.0 --port 9200
 EOF
 
 chmod +x "${BIN_DIR}/run_dashboard.sh" "${BIN_DIR}/run_proxy.sh"
@@ -116,11 +116,10 @@ install_plist "${REPO_ROOT}/deploy/macos/com.hermes.mobile-remote.proxy.plist" \
 
 echo ""
 echo "==> Done"
-echo "    Dashboard: http://127.0.0.1:9119"
-echo "    Proxy:     http://127.0.0.1:9200"
-echo "    Logs:      ${RUNTIME_DIR}/"
+echo "    WebUI:  http://127.0.0.1:8787"
+echo "    Proxy:  http://127.0.0.1:9200 (Tailscale: http://<tailscale-ip>:9200)"
+echo "    Logs:   ${RUNTIME_DIR}/"
 echo ""
-echo "Mobile login: same password as before if you used mobile_dashboard."
+echo "Mobile login: use the password you set."
 echo "Next: install Tailscale on Mac + iPhone, then:"
 echo "  ${REPO_ROOT}/scripts/setup_tailscale.sh"
-echo "  sudo tailscale serve --bg --https=443 http://127.0.0.1:9200"
