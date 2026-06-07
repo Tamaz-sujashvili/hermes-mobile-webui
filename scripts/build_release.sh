@@ -17,6 +17,9 @@ git archive --format=tar HEAD | tar xf - -C "${PKG_DIR}"
 
 echo "${VERSION}" > "${PKG_DIR}/VERSION"
 
+cd "${BUILD_DIR}"
+tar czf "/tmp/${PKG_NAME}.tar.gz" "${PKG_NAME}"
+
 echo "==> Package created at /tmp/${PKG_NAME}.tar.gz"
 echo ""
 echo "To create GitHub release, run:"
