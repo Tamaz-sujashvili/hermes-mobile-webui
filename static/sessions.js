@@ -518,6 +518,19 @@ async function newSession(flash, options={}){
   }
 }
 
+function _restoreActiveStreamLiveUi(sid){
+  const restoredLiveTurn=typeof restoreLiveTurnHtmlForSession==='function'&&restoreLiveTurnHtmlForSession(sid);
+  if(!restoredLiveTurn){
+    appendThinking();
+    clearLiveToolCards();
+    if(typeof placeLiveToolCardsHost==='function') placeLiveToolCardsHost();
+    for(const tc of (S.toolCalls||[])){
+      if(tc&&tc.name) appendLiveToolCard(tc);
+    }
+  }
+  return restoredLiveTurn;
+}
+
 async function loadSession(sid){
   const opts = arguments[1] || {};
   const forceReload = !!opts.force;
@@ -542,6 +555,15 @@ async function loadSession(sid){
   // draft survives page refresh and syncs across clients.
   if (currentSid && currentSid !== sid) {
     _saveComposerDraftNow(currentSid, ($('msg') || {}).value || '', S.pendingFiles ? [...S.pendingFiles] : []);
+    // Snapshot the live turn before msgInner is replaced. Preserves the activity
+    // timer, partial response, and tool cards so switching back does not rebuild
+    // the stream UI from scratch (#2).
+    if(
+      (S.busy||S.activeStreamId||(INFLIGHT&&INFLIGHT[currentSid]))&&
+      typeof snapshotLiveTurnHtmlForSession==='function'
+    ){
+      snapshotLiveTurnHtmlForSession(currentSid);
+    }
   }
   if (currentSid !== sid || forceReload) {
     S.messages = [];
@@ -667,15 +689,7 @@ async function loadSession(sid){
     // switching away from and back to an active chat (#1715).
     S.activeStreamId=activeStreamId;
     syncTopbar();renderMessages();
-    const restoredLiveTurn=typeof restoreLiveTurnHtmlForSession==='function'&&restoreLiveTurnHtmlForSession(sid);
-    if(!restoredLiveTurn){
-      appendThinking();
-      clearLiveToolCards();
-      if(typeof placeLiveToolCardsHost==='function') placeLiveToolCardsHost();
-      for(const tc of (S.toolCalls||[])){
-        if(tc&&tc.name) appendLiveToolCard(tc);
-      }
-    }
+    _restoreActiveStreamLiveUi(sid);
     loadDir('.');
     setBusy(true);setComposerStatus('');
     startApprovalPolling(sid);
@@ -750,7 +764,9 @@ async function loadSession(sid){
       updateSendBtn();
       setStatus('');
       setComposerStatus('');
-      syncTopbar();renderMessages();appendThinking();loadDir('.');
+      syncTopbar();renderMessages();
+      _restoreActiveStreamLiveUi(sid);
+      loadDir('.');
       updateQueueBadge(sid);
       startApprovalPolling(sid);
       if(typeof startClarifyPolling==='function') startClarifyPolling(sid);
