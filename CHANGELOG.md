@@ -6,6 +6,7 @@
 ### Fixed
 
 - **Session "turns on" after switching:** Fixed a race condition in `loadSession` where `S.busy` (from a still-running stream in the previous session) was not cleared until after an async message-load round-trip. During that gap, `_isSessionLocallyStreaming()` would return `true` for the newly-switched-to session, causing the sidebar spinner, thinking indicator, and Stop button to appear on an idle session. The fix pre-emptively resets `S.busy` and `S.activeStreamId` as soon as the server's session metadata confirms no `active_stream_id`, before any async awaits. Stale INFLIGHT entries (from crashed streams) are cleared in the same pass.
+- **Session timer/UI restarts when switching back to a streaming chat:** `loadSession` now snapshots the live turn DOM before replacing `msgInner`, restores that snapshot (or replays tool cards) on both streaming return paths, and seeds the Activity elapsed timer from `pending_started_at` when rebuilding the live group. Switching away and back no longer resets the working timer to `0:00` or makes the in-flight turn look like it started over.
 
 - **Hermes.app bootstrap 404:** `scripts/repair_hermes_desktop.sh` seeds `~/.hermes/bootstrap-cache/` with `install.sh` for the commit baked inside `app.asar`, preventing GitHub 404 when the app was built from a dirty/unpushed checkout.
 - **Hermes.app backend timeout:** `scripts/launch_hermes_app.sh` sets `HERMES_DESKTOP_WEB_DIST` via `launchctl setenv` so the Python dashboard finds on-disk web assets instead of the unreadable `app.asar/dist` path.

@@ -5085,6 +5085,10 @@ function ensureActivityGroup(inner, opts){
     if(live){
       group.setAttribute('data-live-tool-call-group','1');
       group.setAttribute('data-live-activity-current','1');
+      const pendingStarted=S.session&&S.session.pending_started_at;
+      if(pendingStarted){
+        group.setAttribute('data-turn-started-at',String(pendingStarted));
+      }
     }
     group.innerHTML=`<button type="button" class="tool-call-group-summary" aria-expanded="${collapsed?'false':'true'}" data-ui-click="_toggleActivityGroup(this)"><span class="tool-call-group-chevron">${li('chevron-right',12)}</span><span class="tool-call-group-label">Activity</span><span class="tool-call-group-duration"></span></button><div class="tool-call-group-body"></div>`;
     const anchor=opts.anchor||null;
