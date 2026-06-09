@@ -604,14 +604,21 @@ async function loadSession(sid){
   _setActiveSessionUrl(S.session.session_id);
 
   const activeStreamId=S.session.active_stream_id||null;
-  // If the server says the session is idle, discard any browser-side inflight
-  // cache left behind by a crashed/restarted stream. Otherwise the UI can keep
-  // showing a permanent thinking/running state even though active_streams=0.
-  if(!activeStreamId&&INFLIGHT[sid]){
-    delete INFLIGHT[sid];
-    if(typeof clearInflightState==='function') clearInflightState(sid);
+  // If the server says the session is idle, pre-emptively reset S.busy and
+  // S.activeStreamId NOW — before the async _ensureMessagesLoaded gap below.
+  // Without this, S.busy can remain true from a still-running stream in the
+  // PREVIOUS session while S.session.session_id has already advanced to the
+  // new one.  _isSessionLocallyStreaming() checks (isActive && S.busy), so
+  // during the async window the new session would appear locally-streaming,
+  // causing the sidebar spinner and send-button to light up falsely.
+  // Also clears any stale INFLIGHT entry left behind by a crashed stream.
+  if(!activeStreamId){
     S.activeStreamId=null;
     S.busy=false;
+    if(INFLIGHT[sid]){
+      delete INFLIGHT[sid];
+      if(typeof clearInflightState==='function') clearInflightState(sid);
+    }
   }
 
   function _mergePendingSessionMessage(session,messages){
